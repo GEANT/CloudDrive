@@ -1,0 +1,38 @@
+#!/bin/bash
+# chkconfig: 3 21 91
+#
+# Voldemort
+#
+# description: Start up the Voldemort NoSQL DB.
+ 
+ 
+RETVAL=$?
+#Chaneg to suit your needs
+VOLDEMORT_HOME=/usr/local/voldemort
+#Ditto
+VOLDEMORT_USER=voldemort
+ 
+case "$1" in
+  start)
+    if [ -f $VOLDEMORT_HOME/bin/voldemort-server.sh ];
+      then
+      echo $"Starting Voldemort"
+      /bin/su - $VOLDEMORT_USER -c $VOLDEMORT_HOME/bin/voldemort-server.sh > $VOLDEMORT_HOME/voldemort.log 2>&1 &
+    fi
+  ;;
+ 
+  stop)
+    if [ -f $VOLDEMORT_HOME/bin/voldemort-stop.sh ];
+      then
+      echo $"Stopping Voldemort"
+      /bin/su - $VOLDEMORT_USER -c $VOLDEMORT_HOME/bin/voldemort-stop.sh
+    fi
+  ;;
+ 
+  *)
+    echo $"Usage: $0 {start|stop}"
+    exit 1
+  ;;
+esac
+ 
+exit $RETVAL
