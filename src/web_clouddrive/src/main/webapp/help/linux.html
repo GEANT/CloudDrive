@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><meta content="text/html; charset=UTF-8" http-equiv="content-type" /><title>Home</title></head>
+  <body class="lift:content_id=main">
+    <div id="main" class="lift:surround?with=default;at=content">
+		<b><a href="/help/index">Help home </a></b><br/><br/><br/>
+		<b>Linux</b> <br/>
+		On Linux, most UI clients simple don't work with webdav over ssl very well. Luckily, there is a package that allows you to mount cloud backed storage as a normal disk. We'll leave permissions and groups outside the scope of this quick walk through - basically it is just any other Linux filesystem, so you should do what you always do. <br/>
+
+		Use your system's package manager to install a package named davfs2. Once you have done that, you MUST edit the configuration file for davfs2 (on Ubuntu it's located in /etc/davfs2/davfs2.conf). <br/><br/><br/>
+
+		<b>NOTE: RHEL5 users wil want to use the RPM http://pkgs.org/centos-5-rhel-5/rpmforge-x86_64/davfs2-1.4.6-1.el5.rf.x86_64.rpm.html </b><br/><br/><br/>
+
+		Uncomment the line:<br/><br/>
+
+		if_match_bug 0<br/><br/>
+
+		and change it to:<br/><br/>
+
+		if_match_bug 1<br/><br/>
+
+		If you do NOT do this, davfs2 will not work for you with cloud backed storage. While we're at it, you might want to enable locking - a bit safer when multiple computers access a file. So uncomment the line:<br/><br/>
+
+		use_locks 0 and change it to use_locks 1<br/><br/>
+
+		Now create a mount point, say /mnt/clouddrive and type:<br/><br/>
+
+		mount -t davfs https://rightfabric.net/ /mnt/clouddrive<br/><br/>
+
+		Supply your username and your password here, accept the certificate (it's a “real” one, but strangely enough you sometimes get a warning).<br/>
+
+		And that's all! /mnt/clouddrive now maps to cloud backed storage.<br/>
+    </div>
+  </body>
+</html>

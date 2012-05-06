@@ -1,0 +1,182 @@
+/* CSS Document */
+body {
+	font: 100%/1.0 Verdana, Arial, Helvetica, sans-serif;
+	background: #FFFFFF;
+	margin: 0;
+	padding: 0;
+	color: #4E5869;
+}
+
+.upload-form {
+  	padding: 20px;
+	width: 400px;
+  	border: 2px solid #cccccc;
+  	border-radius:5px;
+  	-moz-border-radius: 5px;
+ 	-webkit-box-shadow:0 0 5px #ccc;
+ 	-moz-box-shadow: 0 0 5px #ccc;
+ 	box-shadow: 0 0 5px #ccc;
+ 	background-image: -moz-linear-gradient(top, #ffffff,#f2f2f2);
+ 	background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#f2f2f2));			
+}
+
+input {			
+ 	border:5px solid #ccc;
+ 	font-size: 11pt;			
+ 	padding: 5px 5px 5px 5px;			
+ 	border-radius:5px;
+ 	-moz-border-radius: 5px;			
+ 	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;	
+}
+
+input[type=button] {
+  	background-image: -moz-linear-gradient(top, #ffffff, #dfdfdf);
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#dfdfdf));
+}  				  
+
+  
+input:focus {
+	-webkit-box-shadow:0 0 10px #ccc;
+	-moz-box-shadow: 0 0 10px #ccc;
+	box-shadow: 0 0 5px #ccc;
+	-webkit-transform: scale(1.05);
+	-moz-transform: scale(1.05);
+	transform: scale(1.05);			
+}
+
+.usage-style {
+	font: 70%/0.7 Verdana, Arial, Helvetica, sans-serif;
+	margin: 10;
+	padding: 20;
+	color: #4E5869;	
+}
+
+/* ~~ Element/tag selectors ~~ */
+/* Due to variations between browsers, it's best practices to zero padding and margin on lists. For consistency, you can either specify the amounts you want here, or on the list items (LI, DT, DD) they contain. Remember that what you do here will cascade to the .nav list unless you write a more specific selector. */
+ul, ol, dl 
+{ 
+	padding: 0;
+	margin: 0;
+	list-style-type: none; 
+	list-style-image: none;
+	display: inline;
+	padding-right: 20px;
+} 
+
+h1, h2, h3, h4, h5, h6, p {
+	margin-top: 0;	 /* removing the top margin gets around an issue where margins can escape from their containing div. The remaining bottom margin will hold it away from any elements that follow. */
+	padding-right: 15px;
+	padding-left: 15px; /* adding the padding to the sides of the elements within the divs, instead of the divs themselves, gets rid of any box model math. A nested div with side padding can also be used as an alternate method. */
+}
+a img { /* this selector removes the default blue border displayed in some browsers around an image when it is surrounded by a link */
+	border: none;
+}
+
+/* ~~ Styling for your site's links must remain in this order - including the group of selectors that create the hover effect. ~~ */
+a:link {
+	color:#414958;
+	text-decoration: underline; /* unless you style your links to look extremely unique, it's best to provide underlines for quick visual identification */
+}
+a:visited {
+	color: #4E5869;
+	text-decoration: underline;
+}
+a:hover, a:active, a:focus { /* this group of selectors will give a keyboard navigator the same hover experience as the person using a mouse. */
+	text-decoration: none;
+}
+
+/* ~~ this container surrounds all other divs giving them their percentage-based width ~~ */
+.container {
+	width: 100%;
+	max-width: 1260px;/* a max-width may be desirable to keep this layout from getting too wide on a large monitor. This keeps line length more readable. IE6 does not respect this declaration. */
+	min-width: 780px;/* a min-width may be desirable to keep this layout from getting too narrow. This keeps line length more readable in the side columns. IE6 does not respect this declaration. */
+	background: #FFFFFF;
+	margin: 0 auto; /* the auto value on the sides, coupled with the width, centers the layout. It is not needed if you set the .container's width to 100%. */
+}
+
+/* ~~ the header is not given a width. It will extend the full width of your layout. It contains an image placeholder that should be replaced with your own linked logo ~~ */
+.header {
+	background: #FFFFFF;
+	min-width: 100%;
+	min-height: 90px;
+}
+
+#main-logo {
+	float:left;
+	min-width:50%;
+	max-width:50%;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 400%;
+	text-align: left;
+	color: #7fccff;
+	line-height: 120%;
+	padding-left: 20px;
+	padding-top: 10px;
+	margin-bottom: 0;
+
+}
+
+#secondary-logo {
+	float: left;
+	min-width:50%;
+	max-width:50%;
+	min-height: 80px;
+	padding-right:0px;
+	padding-top:0px;
+}
+
+.nav-item {
+	display: inline; 
+	padding-right: 60px;
+}
+	
+
+.search-replacement {
+  width: 25px;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: url('/classpath/images/search.png') repeat-x center bottom;
+  text-indent: -1000em;
+  cursor: pointer; /* hand-shaped cursor */
+}
+
+.content {
+	float: left;
+	padding-top: 15px;
+	width: 80%;
+}
+
+.sidebar-right {
+	float: left;
+	width: 20%;
+	background: #FFFFFF;
+	padding-top: 15px;
+	
+}
+
+.input-filename {
+ 	border: 0px solid #FFFFFF;
+ 	font-size: 9pt;			
+ 	padding: 5px 5px 5px 5px;			
+ 	border-radius:0px;
+	width: 200px;
+ 	-moz-border-radius: 0px;			
+ 	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;	
+}
+
+
+/* ~~The footer ~~ */
+.footer {
+	width: 100%;
+	padding: 10px 0;
+	background: #FFFFFF;
+	position: relative;/* this gives IE6 hasLayout to properly clear */
+	clear: both; /* this clear property forces the .container to understand where the columns end and contain them */
+	text-align: center;
+}

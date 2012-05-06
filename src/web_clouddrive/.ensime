@@ -1,0 +1,3 @@
+(:project-package "code" 
+ :use-sbt t 
+  :root-dir "/Users/maartenkoopmans/mijnrugzak/projects/sbt_clouddrive_web")

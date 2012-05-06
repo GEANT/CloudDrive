@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><meta content="text/html; charset=UTF-8" http-equiv="content-type" /><title>Home</title></head>
+  <body class="lift:content_id=main">
+    <div id="main" class="lift:surround?with=default;at=content">
+		<b><a href="/help/index">Help home </a></b><br/><br/><br/>
+		<b>Overview</b><br/>
+		This page briefly describes what you can do with the website,  undesigned as it is right now. Again, we're working on it. We're hoping that some of the features are pretty cool and will compensate for the current look and feel ;-) <br/>
+		
+		At the top you'll see a menu with three items once you have logged in: <br/><br/>
+		1.Logout: logs you out and  terminates your  session <br/>
+		2.Webdrive: a simple looking, but functionally reasonably powerful web interface to your files. We'll dive into this one below<br/>
+		3.Help: the help section. This part...<br/>
+		
+		<br/><br/><br/>
+		<b>Webdrive</b>
+		<br/><br/>
+		At the top of the page in the upper right corner you'll see some usage statistics. You'll see a search box and below that a file upload (max 2GB for the browser). We'll leave search for what it is and revisit it below, and the file upload speaks for itself. You'll see these on all pages. <br/>
+		You'll notice that the webdrive has three folders on setup ready for you: 
+		<ol>
+		<li>common: this functions as a 'bin' for files that get uploaded to saved searches</li>
+		<li>searches: this name is a bit misleading, and we'll change it before the final release. When you save a search, it becomes a subfolder in  this 'searches' folder. Search results are dynamicaly updated, but more importantly, this gives you a way to persist search results and access them via the disk interface. Note that you can't upload files to the Metadata folder in the web interface (they are search results), this is slightly different from the disk interface.</li>
+		<li>public: anything you put here is visible to the world via the url: https://rightgfabric.net/public/yourusername/filename</li>
+		</ol>
+		<br/>
+		<b> NOTE THAT FOR PUBLIC FILES, YOU HAVE TO GIVE A DIRECT LINK - BROWSING BY VIA THE WEB BY FOLDER IS NOT SUPPORTED FOR YOUR PUBLIC FILES (YET) </b><br/><br/>
+		
+		- The big green + sign can be used to add a folder or upload a file, depending on which one you chose. <br/>
+		- Every file that has been uploaded to a folder will be editable to rename it - just click on it. <br/>
+		- You'll also see a “Delete” button to delete the file and a dowload button before the file name <br/><br/><br/>
+		
+		Finally, you'll see a field with the word "Tags". You can tag your files by just typing words separated by a space. When you hit enter, the tags are assigned. <br/><br/>
+		
+		<b>These tags are searchable. Once you have searched on tags, you can save the searchresult as a “search folder” and give it a name It will get stored under the 'searches' toplevel folder; any file that has  the tags that belong to that search folder will be automatically added (and removed if there is no longer a match). </b><br/><br/>
+		
+		Why the tagging? Combined with the stored searches it allows you to have different “cross-cuts” of your data, also accessible via the disk interface. You can drop a file in the disk interface as well on a search folder. The file will then be stored under the “Common” folder, show in the search folder and get tagged with the tags that specify the query of the search folder. Sounds complicated, but just drop a file on a search folder in your disk and see what happens!
+    </div>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+The config.txt here is a placeholder sometimes used when doing sbt run.
+Adapt it to match your needs (must do!)
+
+The rest is plain ol' Lift application. Adapt the properties as needed for
+it to run (see the docs)

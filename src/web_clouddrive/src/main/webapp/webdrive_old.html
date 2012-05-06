@@ -1,0 +1,52 @@
+<lift:surround with="default" at="content">
+	<div align="right">
+		<lift:comet type="Usage" name="Other">
+		 <db:main>Loading Dashboard.</db:main> 
+		</lift:comet>
+	</div>
+	<div align="left">
+		<div>
+		<lift:WebDrive.searchBox form ="POST">
+		<search:box/>
+		<search:submit class="search-replacement"/>
+		</lift:WebDrive.searchBox>
+		</div>
+		<br/><br/>
+	
+		<lift:WebDrive.allowUploader>
+		<upload:allowed></upload:allowed>
+		</lift:WebDrive.allowUploader>
+
+		<lift:WebDrive.breadCrumbs>
+		<bread:crumbs/>
+		</lift:WebDrive.breadCrumbs>
+	
+		<br/><br/>
+	
+		<div><lift:WebDrive.dirHeader><dir:title/></lift:WebDrive.dirHeader></div>
+
+		<div><lift:WebDrive.allowNewCollection><newcollection:allowed/></lift:WebDrive.allowNewCollection></div>
+
+		<div id="collections">
+			<lift:WebDrive.listCollections>
+			<div><coll:item/></div>
+			<div align="right"><coll:delete/></div>
+			</lift:WebDrive.listCollections>
+		</div>
+
+		<br/><br/>
+
+		<div><lift:WebDrive.fileHeader><file:title/></lift:WebDrive.fileHeader></div>
+		<lift:WebDrive.tagText><some:text/></lift:WebDrive.tagText>
+
+		<br/><br/>
+		<lift:WebDrive.listResources>
+			<div align="left"><res:item/></div>
+			<div align="right"><res:delete/></div>
+			<div align="right"><res:edit/></div>
+			</lift:WebDrive.listResources>	
+		</div>
+
+		
+
+</lift:surround>

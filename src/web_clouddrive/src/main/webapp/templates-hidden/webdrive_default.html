@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title><span class="lift:Menu.title"></span></title>
+<link rel="stylesheet" type="text/css" href="/classpath/css/main.css"/>
+<script id="jquery" src="/classpath/jquery.js" type="text/javascript"/>
+<script id="json" src="/classpath/json.js" type="text/javascript"/>
+
+</head>
+
+<body>
+<div id="container" class="container">
+	<lift:bind name="logo"/>
+	<span class="lift:Menu.builder?ul:class=nav-menu;li:class=nav-item"/>
+	<br/>
+  	<div id="content" class="content">
+		<br/>
+		<lift:bind name="breadcrumbs"/>
+		<hr/>
+		<br/>
+		<lift:bind name="collections"/>
+		<br/>
+		<lift:bind name="resources-header"/>
+		<br/>
+		<lift:bind name="uploader"/>
+		<br/>
+		<lift:bind name="resources"/>
+		<lift:bind name="content"/>  
+  </div>
+  <div id="sidebar-right" class="sidebar-right">
+	<lift:bind name="search"/>
+	<lift:bind name="stats"/>
+  </div>
+  <hr/><br/><br/>
+  <div id="footer" class="footer">
+	Cloud drive, all rights reserved 2010-2012, vrijheid.net
+	<lift:bind name="footer"/>
+  </div>
+</div>
+</body>
+</html>

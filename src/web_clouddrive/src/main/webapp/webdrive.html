@@ -1,0 +1,76 @@
+<lift:surround with="webdrive_default" at="content">
+<div id="container" class="container">
+
+	<lift:bind-at name="logo">
+	<div id="header" class="header" width="100%">
+		<div id="main-logo" class="main-logo">Cloud drive</div>
+		<div class="secondary-logo">
+	  	<img src="/classpath/images/secondary-logo.png" width="176" height="80" align="right" />
+		</div>
+	</div>
+	</lift:bind-at>
+  	
+	<lift:bind-at name="search">
+		<lift:WebDrive2.searchBox form ="POST">
+		<search:box/>
+		<search:submit class="search-replacement"/>
+		</lift:WebDrive2.searchBox>
+	</lift:bind-at>
+		
+	<lift:bind-at name="breadcrumbs">
+		<lift:WebDrive2.breadCrumbs>
+		<bread:crumbs/>
+		<bread:separator/>
+		</lift:WebDrive2.breadCrumbs>
+	</lift:bind-at>
+	
+	<lift:bind-at name="collections">
+		<br/><br/><br/>
+		<div>
+			<lift:WebDrive2.dirHeader><dir:title/></lift:WebDrive2.dirHeader>
+			<div align="right">
+				<lift:WebDrive2.allowNewCollection>
+					<newcollection:allowed/>
+				</lift:WebDrive2.allowNewCollection>
+			</div>
+		</div>
+		<div id="collections" width="100%">
+			<lift:WebDrive2.listCollections>
+				<coll:item/>
+			</lift:WebDrive2.listCollections>
+		</div>
+	</lift:bind-at>
+	
+	<lift:bind-at name="resources-header">
+		<div><lift:WebDrive2.fileHeader><file:title/></lift:WebDrive2.fileHeader></div>
+		<lift:WebDrive2.tagText><some:text/></lift:WebDrive2.tagText>	
+	</lift:bind-at>
+
+
+	<lift:bind-at name="uploader">	
+		<div align="right">
+			<lift:WebDrive2.allowUploader>
+				<upload:allowed></upload:allowed>
+			</lift:WebDrive2.allowUploader>
+		</div>
+	</lift:bind-at>	
+	
+	<lift:bind-at name="resources">
+	 <br/><br/>
+		<lift:WebDrive2.listResources>
+			<div align="left">
+				<res:download/>
+				<res:delete/>
+				<res:item/>
+				Tags: <res:edit/>
+			</div>
+		</lift:WebDrive2.listResources>	
+	</lift:bind-at>
+
+	<lift:bind-at name="stats">
+		<lift:comet type="Usage" name="Other" class="main-style">
+		 <db:main>Loading Dashboard.</db:main> 
+		</lift:comet>
+	</lift:bind-at>
+</div>	
+</lift:surround>

@@ -1,0 +1,18 @@
+<lift:surround with="default" at="content">
+	<div><b>Search results </b><br/> </div>
+	<div>
+		<lift:WebDrive2.saveSearch form="POST">
+		<search:tagnames/>
+		<search:foldername/>
+		<search:submit/>
+		</lift:WebDrive2.saveSearch>
+	</div>	
+	<div>
+		<br/>
+		The following files were found:
+		<br/>
+		<lift:WebDrive2.searchresults>
+			<div><search:item/></div>
+		</lift:WebDrive2.searchresults>
+	</div>
+</lift:surround>

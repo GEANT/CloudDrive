@@ -1,0 +1,15 @@
+<lift:surround with="default" at="content">
+<lift:msgs/>
+Your current username is: <br/><br/>
+<lift:ActivateDrive.username>
+<user:name/> <br/><br/>
+</lift:ActivateDrive.username>
+<br/><br/>
+To (re-)activate, please enter a separate password for the disk interface:  <br/><br/>
+<lift:ActivateDrive.password form="POST">
+<pwd:f1/><br/><pwd:f2/><br/><pwd:submit/>
+</lift:ActivateDrive.password>
+<br/><br/>
+You can then connect via webdav using your newly created/re-set password and  your username (see above).
+
+</lift:surround>
