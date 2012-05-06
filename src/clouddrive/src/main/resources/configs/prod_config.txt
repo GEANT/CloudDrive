@@ -1,0 +1,25 @@
+port = 8080
+loglevel = no-debug
+protocol = https://
+
+authnMethod = zookeeper
+static_user = maarten
+static_password = geheim
+realm = www.beneathclouds.com
+hostname = www.beneathclouds.com
+metadata_store = zookeeper
+metering = none
+
+zoo_hosts = ec2-174-129-126-155.compute-1.amazonaws.com:2181
+zoo_session_timeout = 1000
+
+storage = filesystem
+auth_prefix = /auth
+filesystem_prefix = /home/ubuntu/filestore/
+
+awsid = AKIAIHHA4SKDCETF22EQ
+secretkey = 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
+bucket = beneathcloudstestbucket
+
+voldemort = tcp://localhost:6666
+max_tries = 5

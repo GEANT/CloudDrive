@@ -1,0 +1,21 @@
+port = 8080
+loglevel = no-debug
+protocol = http://
+
+authnMethod = zookeeper
+static_user = maarten
+static_password = geheim
+realm = www.beneathclouds.com
+hostname = localhost
+
+zoo_hosts = localhost:2181
+zoo_session_timeout = 1000
+
+storage = s3
+auth_prefix = /auth
+filesystem_prefix = /home/ubuntu/filestore/
+
+awsid = AKIAIHHA4SKDCETF22EQ
+secretkey = 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
+bucket = beneathcloudstestbucket
+

@@ -1,0 +1,7 @@
+The config.txt here is a placeholder sometimes used when doing sbt run.
+Adapt it to match your needs (must do!)
+
+The rest are the packages. As they all reside in the
+net.vrijheid.clouddrive  namespace I've let that tiresome empty part of the
+directory tree out. Feel free to torture yourself and "do it right" if
+you're a neat freak.

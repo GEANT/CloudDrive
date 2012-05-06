@@ -1,0 +1,10 @@
+Change GC options for prod_start?
+
+Create Eucalyptus based FS
+Create Rackspace SDK based FS
+
+Check delete behavior of COPY to existing resource (do the file systems delete?)
+
+Test Voldemort MetaDataStore and add debugging info.
+Setup procedure: add all user info (quotas, meterers etc)
+Add GBMonth-meterer

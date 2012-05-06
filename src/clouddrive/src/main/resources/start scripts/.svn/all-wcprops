@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts
+END
+buildall..sh
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/buildall..sh
+END
+profile_production.sh
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/profile_production.sh
+END
+buildall-production.sh
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/buildall-production.sh
+END
+test-build.sh
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/test-build.sh
+END
+build_client.sh
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/build_client.sh
+END
+start_clouddrive.sh
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/start_clouddrive.sh
+END
+clbuild.sh
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/clbuild.sh
+END
+profile_dev.sh
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/profile_dev.sh
+END
+webdavcmds.sh
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/webdavcmds.sh
+END
+profile_clouddrive.sh
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/profile_clouddrive.sh
+END
+prod_start.sh
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/prod_start.sh
+END
+profile-production.sh
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/mijnrugzak/!svn/ver/1285/projects/sbtclouddrive/src/main/resources/start%20scripts/profile-production.sh
+END

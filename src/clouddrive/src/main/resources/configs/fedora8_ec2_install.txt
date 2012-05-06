@@ -1,0 +1,12 @@
+yum update
+yum upgrade
+wget http://mirror.lihnidos.org/GNU/savannah/davfs2/davfs2-1.4.6.tar.gz
+cd /tmp
+tar xfz /root/davfs2-1.4.6.tar.gz 
+cd davfs2-1.4.6
+yum install neon-devel autoconf gettext-devel po4a  sysconftool  automake  gcc
+mkdir /mnt/webdav
+groupadd davfs2
+useradd -g davfs2 davfs2
+./bootstrap && ./configure && make && make install
+mount -t davfs https://www.beneathclouds.com /mnt/webdav

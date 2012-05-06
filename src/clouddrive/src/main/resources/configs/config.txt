@@ -1,0 +1,25 @@
+port = 8080
+loglevel = debug
+protocol = http://
+
+authnMethod = voldemort
+static_user = maarten
+static_password = geheim
+realm = beneathclouds.com
+hostname = localhost
+metadata_store = voldemort
+metering = voldemort
+
+zoo_hosts = localhost:2181
+zoo_session_timeout = 1000
+
+storage = s3
+auth_prefix = /auth
+filesystem_prefix = /Users/maartenkoopmans/filestore/
+
+awsid = AKIAIHHA4SKDCETF22EQ
+secretkey = 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
+bucket = mbktestbucket
+
+voldemort = tcp://localhost:6666
+max_tries = 5

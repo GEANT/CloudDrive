@@ -1,0 +1,81 @@
+#Port number the WebDAV daemon listens on
+port = 9090
+#Primitive debug. Anything else that 'debug' does nothing. 
+# 'debug' creates an abundance of messages on stdout. Only use that when
+# well, developing and debugging
+loglevel = no-debug
+#The protocol to use (needed by clients). Either http:// or https:// (front
+#with Stunnel, see docs)
+protocol = https://
+
+#Authentication back end. Can be static (see user, password below) or
+#'voldemort'. Others may follow.
+authnMethod = voldemort
+static_user = maarten
+static_password = geheim
+#Bookkeeping stuff. Leave it be
+realm = beneathclouds.com
+#Your hostname. Not always needed
+hostname = 10.0.1.4
+#The metadata store is pluggable, but only voldemort is supported.
+#For others, see roadmap (e.g. mongodb?)
+metadata_store = voldemort
+#Where to store the metering data. Currently Voldemort only. See above.
+metering = voldemort
+
+#Legacy stuff from when we started with zookeeper as metadata store. Will be removed.
+zoo_hosts = localhost:2181
+zoo_session_timeout = 1000
+
+#Storage type. Currently S3 or filesystem (local, handy for development)
+storage = filesystem
+#Leave it be. Used for authentication
+auth_prefix = /auth
+#If you use the local filesystem for data storage, this is the folder or
+#mount point to store. Note that it must be shared across all machines in a
+#multi-machine setup. E.g. via SMB or NFS or so.
+#NOTE THE TRAILING SLASH IN THE PATH
+filesystem_prefix = /tmp/
+
+
+#If you use S3, fill in the AWS S3 details here. Self explantory (see docs)
+awsid = AWS_ID_KEY_HERE
+secretkey = AWS_SECRET_KEY_HERE
+bucket = AWS_BUCKET_NAME_HERE
+
+#comma separated list of Voldemort servers here
+voldemort = tcp://10.0.0.5:6666
+#How many times to try booting to a server
+max_tries = 5
+
+#Login system. "local" for a simple local login , mostly for development
+#Use "ssp" for the real stuff with federated SSO, as described in the docs
+login_system = local
+
+#These folders are ALWAYS created on setup for a new user. You can set
+#their names here
+
+#This is where searches are stored
+tag_folder_root = searches
+#This is the "data bin" for all data that's not in a designated folder
+#but tagged only
+common_folder_root = common
+#This is the name for the public folder, used for read-only sharing with
+#the world
+public_folder_root = public
+#Work in progress, here's where the shares end up
+shared_folder_root = shares
+
+#If you have a local login system, mail set up etc.
+#this address will send email for invites etc.
+send_email_from = you@yordomain.com
+
+#SSP settings
+#Enable whitelisting
+ssp_whitelisting = true
+#Whitelisting file
+ssp_whitelist_file = /etc/rightfabric/allowed
+#Primary uid to use, fallback for username
+ssp_main_attribute = ATTR_id
+#Secondary id, this will be the unique user-readable username
+ssp_user_key = ATTR_eduPersonPrincipalName,ATTR_email,ATTR_mail
