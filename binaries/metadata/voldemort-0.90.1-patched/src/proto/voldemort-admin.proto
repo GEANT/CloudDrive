@@ -1,0 +1,321 @@
+package voldemort;
+
+option java_package = "voldemort.client.protocol.pb";
+option java_outer_classname = "VAdminProto";
+option optimize_for = SPEED;
+
+import "voldemort-client.proto";
+
+message GetMetadataRequest {
+  required bytes key = 1;
+}
+
+message GetMetadataResponse {
+  optional Versioned version = 1;
+  optional Error error = 2;
+}
+
+message UpdateMetadataRequest {
+  required bytes key = 1;
+  required Versioned versioned = 2;
+}
+
+message UpdateMetadataResponse {
+  optional Error error = 1;
+}
+
+message FileEntry {
+  required string file_name = 1;
+  required int64 file_size_bytes = 2;
+}
+
+message PartitionEntry {
+  required bytes key = 1;
+  required Versioned versioned = 2;
+}
+
+message UpdatePartitionEntriesRequest {
+  required string store = 1;
+  required PartitionEntry partition_entry = 2;
+  optional VoldemortFilter filter = 3;
+}
+
+message UpdatePartitionEntriesResponse {
+  optional Error error = 1;
+}
+
+message VoldemortFilter {
+  required string name = 1;
+  required bytes data = 2;
+}
+
+message UpdateSlopEntriesRequest {
+  required string store = 1;
+  required bytes key = 2; 
+  required VectorClock version = 3;
+  required RequestType request_type = 4;
+  optional bytes value = 5;
+  optional bytes transform = 6;
+}
+
+message UpdateSlopEntriesResponse {
+  optional Error error = 1;
+}
+message FetchPartitionFilesRequest {
+  required string store = 1;
+  repeated PartitionTuple replica_to_partition = 2;
+}
+
+message FetchPartitionEntriesRequest {
+  repeated PartitionTuple replica_to_partition = 1;
+  required string store = 2;
+  optional VoldemortFilter filter = 3;
+  optional bool fetch_values = 4;
+  optional int64 skip_records = 5;
+  optional string initial_cluster = 6;
+}
+
+message FetchPartitionEntriesResponse {
+  optional PartitionEntry partition_entry = 1;
+  optional bytes key = 2;
+  optional Error error = 3;
+}
+
+message DeletePartitionEntriesRequest {
+  required string store = 1;
+  repeated PartitionTuple replica_to_partition = 2;
+  optional VoldemortFilter filter = 3; 
+  optional string initial_cluster = 4;
+}
+
+message DeletePartitionEntriesResponse {
+  optional int64 count = 1;
+  optional Error error = 2;
+}
+
+message InitiateFetchAndUpdateRequest {
+  required int32 node_id = 1;
+  required string store = 2;
+  optional VoldemortFilter filter = 3;
+  repeated PartitionTuple replica_to_partition = 4;
+  optional string initial_cluster = 5;
+  optional bool optimize = 6;
+}
+
+message AsyncOperationStatusRequest {
+  required int32 request_id = 1;
+}
+
+message AsyncOperationStopRequest {
+  required int32 request_id = 1;
+}
+
+message AsyncOperationStopResponse {
+  optional Error error = 1;
+}
+
+message AsyncOperationListRequest {
+  required bool show_complete = 2;
+}
+
+message AsyncOperationListResponse {
+  repeated int32 request_ids = 1;
+  optional Error error = 2;
+}
+
+message PartitionTuple {
+  required int32 replica_type = 1;
+  repeated int32 partitions = 2;
+}
+
+message PerStorePartitionTuple {
+  required string store_name = 1;
+  repeated PartitionTuple replica_to_partition = 2;
+}
+
+message RebalancePartitionInfoMap {
+  required int32 stealer_id = 1;
+  required int32 donor_id = 2;
+  required int32 attempt = 3;
+  repeated PerStorePartitionTuple replica_to_add_partition = 4;
+  repeated PerStorePartitionTuple replica_to_delete_partition = 5;
+  required string initial_cluster = 6;
+}
+
+message InitiateRebalanceNodeRequest {
+  required RebalancePartitionInfoMap rebalance_partition_info = 1;
+}
+
+message AsyncOperationStatusResponse {
+  optional int32 request_id = 1;
+  optional string description = 2;
+  optional string status = 3;
+  optional bool complete = 4;
+  optional Error error = 5;
+}
+
+message TruncateEntriesRequest {
+  required string store = 1;
+}
+
+message TruncateEntriesResponse {
+  optional Error error = 1;
+}
+
+message AddStoreRequest {
+  required string storeDefinition = 1;
+}
+
+message AddStoreResponse {
+  optional Error error = 1;
+}
+
+message DeleteStoreRequest {
+  required string storeName = 1;
+}
+
+message DeleteStoreResponse {
+  optional Error error = 1;
+}
+
+message FetchStoreRequest {
+  required string store_name = 1;
+  required string store_dir = 2;
+  optional int64 push_version = 3; 
+}
+
+message SwapStoreRequest {
+  required string store_name = 1;
+  required string store_dir = 2;
+}
+
+message SwapStoreResponse {
+  optional Error error = 1; 
+  optional string previous_store_dir = 2;
+}
+
+message RollbackStoreRequest {
+  required string store_name = 1;
+  required int64 push_version = 2; 
+}
+
+message RollbackStoreResponse {
+  optional Error error = 1;
+}
+
+message RepairJobRequest {
+  optional string store_name = 1;
+}
+
+message RepairJobResponse {
+  optional Error error = 1;
+}
+
+message ROStoreVersionDirMap {
+ required string store_name = 1;
+ required string store_dir = 2;
+}
+
+message GetROMaxVersionDirRequest {
+  repeated string store_name = 1;
+}
+
+message GetROMaxVersionDirResponse {
+  repeated ROStoreVersionDirMap ro_store_versions = 1;
+  optional Error error = 2;
+}
+ 
+message GetROCurrentVersionDirRequest {
+  repeated string store_name = 1;
+}
+
+message GetROCurrentVersionDirResponse {
+  repeated ROStoreVersionDirMap ro_store_versions = 1;
+  optional Error error = 2;
+}
+
+message GetROStorageFormatRequest {
+  repeated string store_name = 1;
+}
+
+message GetROStorageFormatResponse {
+  repeated ROStoreVersionDirMap ro_store_versions = 1;
+  optional Error error = 2;
+}
+
+message FailedFetchStoreRequest {
+  required string store_name = 1;
+  required string store_dir = 2;
+}
+
+message FailedFetchStoreResponse {
+  optional Error error = 1;
+}
+
+message RebalanceStateChangeRequest {
+  repeated RebalancePartitionInfoMap rebalance_partition_info_list = 1;
+  required string cluster_string = 2;
+  required bool swap_ro = 3;
+  required bool change_cluster_metadata = 4;
+  required bool change_rebalance_state = 5;
+  required bool rollback = 6;
+}
+
+message RebalanceStateChangeResponse {
+  optional Error error = 1;
+}
+
+enum AdminRequestType {
+  GET_METADATA = 0;
+  UPDATE_METADATA = 1;
+  UPDATE_PARTITION_ENTRIES = 2;
+  FETCH_PARTITION_ENTRIES = 3;
+  DELETE_PARTITION_ENTRIES = 4;
+  INITIATE_FETCH_AND_UPDATE = 5;
+  ASYNC_OPERATION_STATUS = 6;
+  INITIATE_REBALANCE_NODE = 7;
+  ASYNC_OPERATION_STOP = 8;
+  ASYNC_OPERATION_LIST = 9;
+  TRUNCATE_ENTRIES = 10;
+  ADD_STORE = 11;
+  DELETE_STORE = 12;
+  FETCH_STORE = 13;
+  SWAP_STORE = 14;
+  ROLLBACK_STORE = 15;
+  GET_RO_MAX_VERSION_DIR = 16;
+  GET_RO_CURRENT_VERSION_DIR = 17;
+  FETCH_PARTITION_FILES = 18;
+  UPDATE_SLOP_ENTRIES = 20;
+  FAILED_FETCH_STORE = 22;
+  GET_RO_STORAGE_FORMAT = 23;
+  REBALANCE_STATE_CHANGE = 24;
+  REPAIR_JOB = 25;
+}
+
+message VoldemortAdminRequest {
+  required AdminRequestType type = 1;
+  optional GetMetadataRequest get_metadata = 2;
+  optional UpdateMetadataRequest update_metadata = 3;
+  optional UpdatePartitionEntriesRequest update_partition_entries = 4;
+  optional FetchPartitionEntriesRequest fetch_partition_entries = 5;
+  optional DeletePartitionEntriesRequest delete_partition_entries = 6;
+  optional InitiateFetchAndUpdateRequest initiate_fetch_and_update = 7;
+  optional AsyncOperationStatusRequest async_operation_status = 8;
+  optional InitiateRebalanceNodeRequest initiate_rebalance_node = 9;
+  optional AsyncOperationStopRequest async_operation_stop = 10;
+  optional AsyncOperationListRequest async_operation_list = 11;
+  optional TruncateEntriesRequest truncate_entries = 12;
+  optional AddStoreRequest add_store = 13;
+  optional DeleteStoreRequest delete_store = 14;
+  optional FetchStoreRequest fetch_store = 15;
+  optional SwapStoreRequest swap_store = 16;
+  optional RollbackStoreRequest rollback_store = 17;
+  optional GetROMaxVersionDirRequest get_ro_max_version_dir = 18;
+  optional GetROCurrentVersionDirRequest get_ro_current_version_dir = 19;
+  optional FetchPartitionFilesRequest fetch_partition_files = 20;
+  optional UpdateSlopEntriesRequest update_slop_entries = 22;
+  optional FailedFetchStoreRequest failed_fetch_store = 24;
+  optional GetROStorageFormatRequest get_ro_storage_format = 25;
+  optional RebalanceStateChangeRequest rebalance_state_change = 26;
+  optional RepairJobRequest repair_job = 27;
+}
