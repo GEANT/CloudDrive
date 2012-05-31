@@ -1,7 +1,0 @@
-#External Dependencies
-#Sun May 06 20:00:17 CEST 2012
-/Users/maarten/repos/CloudDrive/src/clouddrive/project/boot/scala-2.7.7/lib/scala-library.jar=SBTCloudDrive.scala
-/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar=SBTCloudDrive.scala
-/Users/maarten/repos/CloudDrive/src/clouddrive/project/plugins/target/scala_2.7.7/plugin-classes/assembly/AssemblyBuilder$class.class=SBTCloudDrive.scala
-/Users/maarten/repos/CloudDrive/src/clouddrive/project/boot/scala-2.7.7/org.scala-tools.sbt/sbt/0.7.7/sbt_2.7.7-0.7.7.jar=SBTCloudDrive.scala
-/Users/maarten/repos/CloudDrive/src/clouddrive/project/plugins/target/scala_2.7.7/plugin-classes/assembly/AssemblyBuilder.class=SBTCloudDrive.scala

@@ -160,10 +160,6 @@ package net.vrijheid.clouddrive.utils {
 			compressed
 		}
 		
-		def idateNow() = {
-		 (new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zZ", Locale.US)).format(new Date())
-		}
-		
 		def previousUserMonthYear(user: String): String = {
 			val cal = Calendar getInstance;
 			cal.roll(Calendar.MONTH,false)
@@ -228,9 +224,17 @@ package net.vrijheid.clouddrive.utils {
 		def idate(now: Date) = {
 			(new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zZ", Locale.US)).format(now)
 		}
-
+		
+		def idateNow() = {
+		 idate(new Date())
+		}
+		
 		def isoDate(now : Date) = {
 			(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")).format(now)
+		}
+		
+		def isoDateNow() = {
+			isoDate(new Date())
 		}
 
 		//Hex encoding/decoding
