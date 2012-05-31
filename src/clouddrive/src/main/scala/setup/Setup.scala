@@ -169,7 +169,7 @@ package net.vrijheid.clouddrive.setup {
 			debug("collection " + fullpath + " added.")
 			
 			val now = idateNow()
-			metadata.setMetaData(fullpath,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> now, davEncode("getlastmodified") -> now))
+			metadata.setMetaData(fullpath,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> isoDateNow(), davEncode("getlastmodified") -> now))
 			debug("....and metadata set.")			
 			
 		}
@@ -189,7 +189,7 @@ package net.vrijheid.clouddrive.setup {
 			val storage_client = VMTalk.getStorageClient;
 			val fs_root = "/" + user
 			val root_metadata = Map(
-			   davEncode("creationdate") -> idateNow(),
+			   davEncode("creationdate") -> isoDateNow(),
 			   davEncode("displayname") -> "",
 			   davEncode("getlastmodified") -> idateNow(),
 			   davEncode("resourcetype") -> "<D:collection/>"

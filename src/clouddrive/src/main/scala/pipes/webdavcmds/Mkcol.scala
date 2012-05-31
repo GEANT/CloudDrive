@@ -94,7 +94,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 				if (ctx.store.create) {
 					debug("Created collection")
 					header = (HTTPServerHelper.httpHeader(201,"text/plain",0)) getBytes;
-					val now = idateNow()
+					val now = isoDateNow()
 					ctx.store.setMetaData(Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> now, davEncode("getlastmodified") -> now))
 				} else {
 					//"Something went wrong"

@@ -129,7 +129,8 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 							//Update necessary fields
 							try {
 								setMetaData(fullkey,davEncode("getcontentlength"),ctx.actualContentLength toString)
-								setMetaData(fullkey,davEncode("getlastmodified"),isoDateNow)
+								setMetaData(fullkey,davEncode("creationdate"),isoDateNow)
+								setMetaData(fullkey,davEncode("getlastmodified"),idateNow)
 								setMetaData(fullkey,davEncode("getcontenttype"),"application/binary")
 								setMetaData(fullkey,davEncode("getetag"),UUID())
 								setMetaData(fullkey,davEncode("resourcetype"),"")
