@@ -218,7 +218,7 @@ package net.vrijheid.clouddrive.sharing {
 					//We drop the length of the original path, then we have the relative path
 					//We'll use this later to construct the target path 
 					val relative_path = stripTrailingSlash(stripLeadingSlash(item drop (source_from_user length)))
-					val now = isoDateNow()
+					val now = idateNow()
 					
 					combined_acls.keys.foreach( { (key) => {
 						key match {
