@@ -1,2 +1,19 @@
 #Source Hashes
-#Sun May 06 20:03:04 CEST 2012
+#Thu May 31 16:40:11 CEST 2012
+src/main/scala/code/lib/CloudFiles.scala=e9c7bc6d810cdde134e59c5771731d6a00ed6d2e
+src/main/scala/code/model/ResetToken.scala=c868ad6bceb4cd5865a0a1dda1d58374be714ebf
+src/main/scala/code/lib/AttributeScanner.scala=ca8a194f0cf5948fb47c4a8eafb0084c1eb5af2a
+src/main/scala/code/lib/Download.scala=78c95a0a18019c363ca30425e94e18df78ee44ab
+src/main/scala/code/snippet/WebDrive.scala=b5442f8653f49b0b0f57b74ad827aaeae5193563
+src/main/scala/code/lib/Login.scala=0eaced5ec0ff3a5704428ccc76120e6117a4125d
+src/main/scala/code/model/Users.scala=d440b65c6392ff9b8b1c9627fbce820edb38c39e
+src/main/scala/code/lib/VMLogin.scala=5bee039cf103eb35e5f30bf18227b7c7904776f4
+src/main/scala/code/model/Invitees.scala=f7b2616ed0f08738d494d93ca790b6dd5e9b395e
+src/main/scala/bootstrap/liftweb/Boot.scala=2509f2cdea1bfc8d734115ae88be6c233237b810
+src/main/scala/code/lib/SSPLogin.scala=15aec3115438e9a70a25795a5fcc62cd26fbd19e
+src/main/scala/code/lib/Upload.scala=281538f0f9f2e3da68bdd8e34b76dd1f58a97d72
+src/main/scala/code/comet/UsageStats.scala=db6a30b8dacc9e2f058ef153f55e13da1c318d28
+src/main/scala/code/snippet/ActivateDrive.scala=069415168caa6d13c6f675ac5146b97227113f49
+src/main/scala/code/comet/UploadProgress.scala=20b13fc02a617a1ecc80bd1173ac8f0371428fa5
+src/main/scala/code/snippet/WebDrive2.scala=b87df28c86535446bcce4549123e317deb41c98a
+src/main/scala/code/snippet/LoginForms.scala=00cf3cb8ca8e40419822c15ec5ce4a2b65507604
