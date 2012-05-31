@@ -454,7 +454,7 @@ package net.vrijheid.clouddrive.website.code {
 				def createCollection(fullkey: String) {
 					
 					metadata createCollection(fullkey)
-					val now = idateNow()
+					val now = isoDateNow()
 					metadata setMetaData(fullkey,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> now, davEncode("getlastmodified") -> now))
 					
 				}

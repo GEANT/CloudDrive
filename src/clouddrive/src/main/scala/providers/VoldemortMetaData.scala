@@ -571,7 +571,7 @@ package net.vrijheid.clouddrive.providers {
 				fullpath.length)
 			debug("Display name = "+foldername)
 		
-			val tagfolder = new VMTagFolder(tags,ACL,foldername,List(),Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> idateNow(), davEncode("getlastmodified") -> idateNow))
+			val tagfolder = new VMTagFolder(tags,ACL,foldername,List(),Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") ->isoDateNow(), davEncode("getlastmodified") -> isoDateNow))
 			debug("Tag folder object created: "+tagfolder)
 			
 			//First put the tagfolder in place and set its metadata
@@ -613,7 +613,7 @@ package net.vrijheid.clouddrive.providers {
 				fullpath.length)
 			debug("Display name = "+foldername)
 		
-			val tagfolder = new VMTagFolder(tags,ACL,foldername,List(),Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> idateNow(), davEncode("getlastmodified") -> idateNow))
+			val tagfolder = new VMTagFolder(tags,ACL,foldername,List(),Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> isoDateNow(), davEncode("getlastmodified") -> isoDateNow))
 			debug("Tag folder object created: "+tagfolder)
 			
 			//First put the tagfolder in place and set its metadata
@@ -877,7 +877,7 @@ package net.vrijheid.clouddrive.providers {
 					fullpath.length)
 				debug("Display name = "+foldername)
 
-				val tagfolder = new VMTagFolder(tags,ACL,foldername,List(),Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> idateNow(), davEncode("getlastmodified") -> idateNow))
+				val tagfolder = new VMTagFolder(tags,ACL,foldername,List(),Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> isoDateNow(), davEncode("getlastmodified") -> isoDateNow))
 				vmstorage put(fullpath,tagfolder)
 				links.foreach((k_v) => { 
 					debug("looping over source/target pairs")
