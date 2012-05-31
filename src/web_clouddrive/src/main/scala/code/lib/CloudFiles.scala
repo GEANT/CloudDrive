@@ -554,9 +554,9 @@ package net.vrijheid.clouddrive.website.code {
 									metadata setMetaData(fullkey,metadata davEncode("getetag"),UUID())		
 									debug ("getetag")
 									//TBD only creationdate on new resource
-									metadata setMetaData(fullkey,metadata davEncode("creationdate"),idateNow)
+									metadata setMetaData(fullkey,metadata davEncode("creationdate"),isoDateNow)
 									metadata setMetaData(fullkey,metadata davEncode("displayname"),holder.fileName)
-									metadata setMetaData(fullkey,metadata davEncode("getlastmodified"),idateNow)
+									metadata setMetaData(fullkey,metadata davEncode("getlastmodified"),isoDateNow)
 									metadata setMetaData(fullkey,metadata davEncode("resourcetype"),"")
 									metadata setMetaData(fullkey,metadata davEncode("source"),"")
 									metadata setPutLength(fullkey,ctx.putContentLength)								

@@ -230,7 +230,7 @@ package net.vrijheid.clouddrive.utils {
 		}
 		
 		def isoDate(now : Date) = {
-			(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")).format(now)
+			(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")).format(now)
 		}
 		
 		def isoDateNow() = {

@@ -129,7 +129,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 							//Update necessary fields
 							try {
 								setMetaData(fullkey,davEncode("getcontentlength"),ctx.actualContentLength toString)
-								setMetaData(fullkey,davEncode("getlastmodified"),idateNow)
+								setMetaData(fullkey,davEncode("getlastmodified"),isoDateNow)
 								setMetaData(fullkey,davEncode("getcontenttype"),"application/binary")
 								setMetaData(fullkey,davEncode("getetag"),UUID())
 								setMetaData(fullkey,davEncode("resourcetype"),"")
@@ -149,9 +149,9 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 							setMetaData(fullkey,davEncode("getcontenttype"),"application/binary")
 							setMetaData(fullkey,davEncode("getetag"),UUID())								
 							//TBD only creationdate on new resource
-							setMetaData(fullkey,davEncode("creationdate"),idateNow)
+							setMetaData(fullkey,davEncode("creationdate"),isoDateNow)
 							setMetaData(fullkey,davEncode("displayname"),displayname)
-							setMetaData(fullkey,davEncode("getlastmodified"),idateNow)
+							setMetaData(fullkey,davEncode("getlastmodified"),isoDateNow)
 							setMetaData(fullkey,davEncode("resourcetype"),"")
 							setMetaData(fullkey,davEncode("source"),"")
 							setPutLength(fullkey,ctx.putContentLength)
@@ -168,9 +168,9 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 						setMetaData(common_key,davEncode("getcontenttype"),"application/binary")
 						setMetaData(common_key,davEncode("getetag"),UUID())								
 						//TBD only creationdate on new resource
-						setMetaData(common_key,davEncode("creationdate"),idateNow)
+						setMetaData(common_key,davEncode("creationdate"),isoDateNow)
 						setMetaData(common_key,davEncode("displayname"),displayname)
-						setMetaData(common_key,davEncode("getlastmodified"),idateNow)
+						setMetaData(common_key,davEncode("getlastmodified"),isoDateNow)
 						setMetaData(common_key,davEncode("resourcetype"),"")
 						setMetaData(common_key,davEncode("source"),"")
 						setPutLength(common_key,ctx.putContentLength)
