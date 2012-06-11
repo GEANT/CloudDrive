@@ -179,13 +179,20 @@ package net.vrijheid.clouddrive.sharing {
 		//CODE_CC: add/remove need to check on allowedAccess as well!
 		
 		//add addToSharedFolder and propagate "upwards" to all of the interfaces?
-		def addToSharedFolder(source: String,folder: String,newComers: Map[ _ <: ACLContainer,List[String]]) {
+		def addFolderToSharedFolder(newone: String){
 			//First, let's create the new ACL for this path
-			val oldACL = getACL(source)
-			val newACL = oldACL ++ newComers
+			//val oldACL = getACL(source)
+			//val newACL = oldACL ++ newComers
 			//Now add the shared folder
 			//getSharedAs should guarantee that a folder name on the toplevel stays preserved. If it's a subfolder, it gets the identical name
-			addSharedFolder(source,getSharedAs(source),newACL)
+			//addSharedFolder(source,getSharedAs(source),newACL)
+			
+			//CODE_CC: add generic logic for adding a subfolder, also from a "sharee" perspectibe and propgate the changes to other users
+			
+		}
+		
+		def addFileToSharedFolder(newone: String){
+			//CODE_CC Generic logic to add a file from a shared folder, also for a "sharee"
 		}
 		
 		/*The source parameter should be a full path withouth the user prefix,
@@ -348,6 +355,16 @@ package net.vrijheid.clouddrive.sharing {
 				}
 			)				 
 		}
+		
+		
+		def removeFolderFromSharedFolder(removee: String) {
+			//CODE_CC Generic logic to remove a folder from a shared folder, also for a "sharee"
+		}
+		
+		def removeFileFromSharedFolder(removee: String){
+			//CODE_CC Generic logic to remove a file from a shared folder, also for a "sharee"
+		}
+		
 		
 		def removeSharedFolder(source: String,folder: String) {
 			

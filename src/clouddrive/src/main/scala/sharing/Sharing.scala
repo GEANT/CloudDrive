@@ -59,10 +59,13 @@ package net.vrijheid.clouddrive.sharing {
 		def inSharedFolder(path: String): Boolean
 		def sharedSource(path: String):Boolean
 
-		def addToSharedFolder(source: String,folder: String,newones: Map[ _ <: ACLContainer,List[String]])		
+		def addFolderToSharedFolder(newone: String)		
+		def addFileToSharedFolder(newone: String)
 		def addSharedFolder(source: String,folder: String,ACL:Map[ _ <: ACLContainer,List[String]])
 		
 		def removeSharedFolder(source: String,folder: String)
+		def removeFolderFromSharedFolder(removee: String)
+		def removeFileFromSharedFolder(removee: String)
 		
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer])
 		def changeACLOnSharedFolder(source: String,gone: ACLContainer)
@@ -97,10 +100,13 @@ package net.vrijheid.clouddrive.sharing {
 		def inSharedFolder(path: String): Boolean = delegate.inSharedFolder (path)
 		def sharedSource(path: String):Boolean = { delegate sharedSource(path)}
 
-		def addToSharedFolder(source: String,folder: String,newones: Map[ _ <: ACLContainer,List[String]]) {delegate.addToSharedFolder(source,folder,newones)}		
+		def addFolderToSharedFolder(newone: String) {delegate.addFolderToSharedFolder(newone)}		
+		def addFileToSharedFolder(newone: String) {delegate.addFileToSharedFolder(newone)}		
 		def addSharedFolder(source: String,folder: String,ACL:Map[ _ <: ACLContainer,List[String]]) {delegate.addSharedFolder(source,folder,ACL)}
 
 		def removeSharedFolder(source: String,folder: String) {delegate.removeSharedFolder(source,folder)}
+		def removeFolderFromSharedFolder(removee: String) {delegate.removeFolderFromSharedFolder(removee)}
+		def removeFileFromSharedFolder(removee: String) {delegate.removeFileFromSharedFolder(removee)}		
 		
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer]) {delegate.changeACLOnSharedFolder(source,gone)}
 		def changeACLOnSharedFolder(source: String,gone: ACLContainer) {delegate.changeACLOnSharedFolder(source,gone)}
