@@ -487,7 +487,7 @@ package net.vrijheid.clouddrive.sharing {
 			
 			debug("In VoldemortSharing incoming path = "+path)
 			
-			//CODE_CC: make this String based.....
+			//This is string based via constants in the ACLVerb object - due to serialization trouble otherwise over metadata stores
 			val acl = getACL(path)
 			var ismember = false
 			var aclverb : List[String] = List()
