@@ -189,10 +189,24 @@ package net.vrijheid.clouddrive.sharing {
 			
 			//CODE_CC: add generic logic for adding a subfolder, also from a "sharee" perspectibe and propgate the changes to other users
 			
+			//Logic:
+			//1 get the shared toplevel from the folder
+			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
+			//3 translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
+			//4 get the parent's ACL and thus the other users
+			//5 create the shared folder for the user and all other ACL users, including reverseshareindex entries
+			
 		}
 		
 		def addFileToSharedFolder(newone: String){
 			//CODE_CC Generic logic to add a file from a shared folder, also for a "sharee"
+			
+			//Logic:
+			//1 get the shared toplevel from the folder
+			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
+			//3 translate the newone to a "shared file" and its direct parent via reversedshareindex on the parent
+			//4 get the parent's ACL and thus the other users
+			//5 create the shared file for the user and all other ACL users, including reverseshareindex entries
 		}
 		
 		/*The source parameter should be a full path withouth the user prefix,
@@ -359,10 +373,24 @@ package net.vrijheid.clouddrive.sharing {
 		
 		def removeFolderFromSharedFolder(removee: String) {
 			//CODE_CC Generic logic to remove a folder from a shared folder, also for a "sharee"
+			
+			//Logic:
+			//1 get the shared toplevel from the folder
+			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
+			//3 translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
+			//4 get the parent's ACL and thus the other users
+			//5 remove the shared folder for the user and all other ACL users, including reverseshareindex entries
 		}
 		
 		def removeFileFromSharedFolder(removee: String){
 			//CODE_CC Generic logic to remove a file from a shared folder, also for a "sharee"
+			
+			//Logic:
+			//1 get the shared toplevel from the folder
+			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
+			//3 translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
+			//4 get the parent's ACL and thus the other users
+			//5 remove the shared folder for the user and all other ACL users, including reverseshareindex entries
 		}
 		
 		
