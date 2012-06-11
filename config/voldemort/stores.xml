@@ -120,7 +120,7 @@
     </value-serializer>
   </store>
   <store>
-    <name>sharesforusers</name>
+    <name>reverseshareindex</name>
     <persistence>bdb</persistence>
     <routing>client</routing>
     <replication-factor>1</replication-factor>

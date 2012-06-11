@@ -63,7 +63,7 @@ package net.vrijheid.clouddrive.sharing {
 		//Note:: these two functions deal with actual data, not links!		
 		protected def setTopLevelShare(path: String,toplevel_sharedornot:Boolean) {
 			
-			//CODE-CC check to see if path is toplevel share folder?
+			//Checks to see if path is toplevel share folder, then updates
 			val shared_root = "/" + ctx.user + "/" + stripLeadingSlash(Config("shared_folder_root"))
 			val well = ((path.startsWith (shared_root)) && (path.length == shared_root.length))
 			if (well) {updateMetaData(path,Map(davEncode("toplevel_shared") -> toplevel_sharedornot.toString()))}
@@ -96,14 +96,17 @@ package net.vrijheid.clouddrive.sharing {
 		
 		//Does the current user have a share underr this path name?
 		def sharedNameExists(path: String): Boolean = { 
-			(share_client.getValue(ctx.user)).contains(path)
+			share_client.getValue_?(path) match {
+				case s: Some[String] => true
+				case None => false
+			}
 		}		
 
 		def ACLSuperSet(incoming: Map[ _ <: ACLContainer,List[String]]): Map[ _ <: ACLContainer,List[String]] = {
-			//CODE-CC
+
 			//Traverse the keys and put them in a Map(user -> permissions)
 			//Users as Strings, for Groups we use the "group" list (containing the users), but exploded
-			//Then, before we add we check if the user exists, if so, we merge the permissions. Otherwsie we just add.
+			//Then, before we add we check if the user exists, if so, we merge the permissions. Otherwise we just add.
 			
 			incoming.foldLeft(Map():Map[ACLContainer,List[String]]) {(finalmap,current_element) => {
 				
@@ -148,10 +151,7 @@ package net.vrijheid.clouddrive.sharing {
 		}
 		
 		def isSharedFolder_?(path: String): Boolean = {
-			/*share_client getValue(path) match {
-				case link: VMSharedFolder => true
-				case _ => false
-			}*/
+
 			inSharedFolder(followLink(path))
 		}
 		
@@ -170,16 +170,11 @@ package net.vrijheid.clouddrive.sharing {
 		}
 
 		private val update_reverse_share = {
-				(current_reversed_shares:List[String],delta:String) => {
-				(delta :: current_reversed_shares).distinct
+				(current_reversed_shares: String,delta:String) => {
+				delta
 			}
 		}
 		
-		private val delete_reverse_share = {
-				(current_reversed_shares:List[String],delta:String) => {
-				(current_reversed_shares filterNot (List(delta).contains))
-			}
-		}
 		
 		//CODE_CC: add/remove need to check on allowedAccess as well!
 		
@@ -189,7 +184,7 @@ package net.vrijheid.clouddrive.sharing {
 			val oldACL = getACL(source)
 			val newACL = oldACL ++ newComers
 			//Now add the shared folder
-			//getSharedAs shiuld guarantee that a folder name on the toplevel stays preserved. If it's a subfolder, it gets the identical name
+			//getSharedAs should guarantee that a folder name on the toplevel stays preserved. If it's a subfolder, it gets the identical name
 			addSharedFolder(source,getSharedAs(source),newACL)
 		}
 		
@@ -248,6 +243,8 @@ package net.vrijheid.clouddrive.sharing {
 											updateMetaData(prefix + folder,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> isoDateNow(), davEncode("getlastmodified") -> now))
 											updateMetaData(prefix + folder,getMetaData(item))
 											debug("After updateMetaData ACL on parent folder collection now is: " + getACL(prefix+folder))
+											//Add the reverse for quick lookup/delete. Map the prefix + folder (which is user specific for the receiving party) reversed to the orginal path to the data, i.e source_from_user + folder
+											share_client applyDelta(prefix + folder,source_from_user+"/"+folder,update_reverse_share)
 											debug("Created")
 										}
 										
@@ -273,27 +270,12 @@ package net.vrijheid.clouddrive.sharing {
 											updateMetaData(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,getMetaData(item))
 											debug("After second update getACL " + target_path + " now is "+ getACL(target_path))
 											//Add this file to this user's shares
-											//TBD (MAYBE!!!): this needs to change so we can find it quickly when a user is removed (backward link)
-											//share_client applyDelta(a_user.user,target_path,update_reverse_share)							
-											//share_client put(target_path,source_from_user)
-										}
-										
-										//Old group code		
-										/*debug("Now entering logic for creating link for user")
-										val target_path = prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path
-										debug ("relative_path = " + relative_path)
-										debug("target path = "+target_path)
-										//Now we can create the link. Beware to add the relative_path to the "source"
-										createLink(source_from_user + "/" + relative_path,target_path,ACL)
-										//Maybe we want to cache one day, so we set the ACL on the link as well
-										setACL(target_path,ACL)	
-										updateMetaData(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> now, davEncode("getlastmodified") -> now))
-										updateMetaData(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,getMetaData(item))*/
-											
-
+											//This changes so we can find it quickly when a user is removed (backward link)
+											//Add the reverse for quick lookup/delete. Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e source_from_user + "/" + relative_path
+											share_client applyDelta(target_path,source_from_user + "/" + relative_path,update_reverse_share)						
+										}	
 									})
 								}
-								
 							}
 					
 							case a_user: ACLUser => {
@@ -322,7 +304,9 @@ package net.vrijheid.clouddrive.sharing {
 									updateMetaData(prefix + folder,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> isoDateNow(), davEncode("getlastmodified") -> now))
 									updateMetaData(prefix + folder,getMetaData(item))
 									debug("After updateMetaData ACL on parent folder collection now is: " + getACL(prefix+folder))
-									debug("Created")
+									//Add the reverse for quick lookup/delete.Map the prefix + folder (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder
+									share_client applyDelta(prefix + folder,prefix+"/"+folder,update_reverse_share)
+									debug("Created")							
 								}
 								
 								
@@ -348,9 +332,8 @@ package net.vrijheid.clouddrive.sharing {
 									updateMetaData(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,getMetaData(item))
 									debug("After second update getACL " + target_path + " now is "+ getACL(target_path))
 									//Add this file to this user's shares
-									//TBD (MAYBE!!!): this needs to change so we can find it quickly when a user is removed (backward link)
-									//share_client applyDelta(a_user.user,target_path,update_reverse_share)							
-									//share_client put(target_path,source_from_user)
+									//This changes so we can find it quickly when a user is removed (backward link).Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder + relative_path
+									share_client applyDelta(target_path,prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,update_reverse_share)							
 								}
 																	
 							}
@@ -369,7 +352,8 @@ package net.vrijheid.clouddrive.sharing {
 		def removeSharedFolder(source: String,folder: String) {
 			
 			//"Reverse" of adding
-			//CODE_CC: add ctx.user!
+			//add ctx.user!
+			val ctxuser = ctx.user
 			//Mark the toplevel as not shared 
 			//Also remove the name under which it is shared
 			setTopLevelShare(source,false)
@@ -390,18 +374,17 @@ package net.vrijheid.clouddrive.sharing {
 							case a_group: ACLGroup => {
 								//Double check: we only give shared to groups that exists
 								if (groupExists(a_group.name)) {
-									//Walk all members and add symlinks
+									//Walk all members and remove symlinks
 									//First create the target path, this is the symlink directory location for the user
 									a_group.group.foreach( user => {
 										
-										//CODE_CC Create target path in such a way that folder takes the place from sourcce folder
+										//CODE_CC Create target path in such a way that folder takes the place from source folder
 										//This way, we have "share under name" and we delete the correct one
 										
 										val target_path = "/"+user+"/"+Config("shared_folder_root")+"/"+stripTrailingSlash(stripLeadingSlash(folder)) + relative_path
 										//Now we can delete the link
 										delete(target_path)
 										//And remove it 
-										//TBD: reserach: is this redundant?
 										share_client delete(target_path)
 									})
 								}
@@ -415,7 +398,6 @@ package net.vrijheid.clouddrive.sharing {
 								//Now we can create the link
 								delete(target_path)	
 								//And remove it 
-								//TBD: research: is this redundant?
 								share_client delete(target_path)							
 							}
 						}
@@ -432,7 +414,7 @@ package net.vrijheid.clouddrive.sharing {
 			val oldACL = getACL(source)
 			val newACL = oldACL.filterNot(gone.contains _)
 			//Now add the shared folder
-			//getSharedAs shiuld guarantee that a folder name on the toplevel stays preserved. If it's a subfolder, it gets the identical name
+			//getSharedAs should guarantee that a folder name on the toplevel stays preserved. If it's a subfolder, it gets the identical name
 			//First we remove all, then we add it again under the new ACL
 			//TBD: Optimize by inlining the next two calls, or trust the compiler?
 			removeSharedFolder(source,getSharedAs(source))
@@ -555,11 +537,10 @@ package net.vrijheid.clouddrive.sharing {
 			}
 			
 			//Default to false, but this code should never be reached. OTOH, this way the ACL engine will never be breached :)
-			else	
-				{
-					debug("ACL engine returns false, this point in the program should have never been reached")
-					false
-				}
+			else {
+				debug("ACL engine returns false, this point in the program should have never been reached")
+				false
+			}
 		}
 		
 		def setACLDeep(path: String,ACL: Map[ _ <: ACLContainer,List[String]]) {

@@ -266,7 +266,7 @@ package net.vrijheid.clouddrive.utils {
 	object VMTalk extends Treatise {
 		
 		var storageClient: VMClient[String,VMNode] = null
-		var shareClient: VMClient[String,List[String]] = null
+		var shareClient: VMClient[String,String] = null
 		var authNclient: VMClient[String,Map[String,String]] = null
 		var incomingDataVMClient: VMClient[String,Long] = null
 		var outgoingDataVMClient: VMClient[String,Long] = null
@@ -314,8 +314,8 @@ package net.vrijheid.clouddrive.utils {
                  if (shareClient == null) {
                          debug("Getting VM share client")
                          //val factory = new SocketStoreClientFactory(clientconfig);             
-                         val tmp: StoreClient[String,List[String]] = factory getStoreClient("sharesforgroups")
-                         shareClient = new VMClient[String,List[String]](tmp)
+                         val tmp: StoreClient[String,String] = factory getStoreClient("reverseshareindex")
+                         shareClient = new VMClient[String,String](tmp)
                  }
                  debug("shareClient - null?" + (shareClient == null))
                  shareClient 
