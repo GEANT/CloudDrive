@@ -168,12 +168,6 @@ package net.vrijheid.clouddrive.sharing {
 			if (!(ctx.user == getUserNameFromPath(path)) && exists("/" + user)) { true }
 			else {false}
 		}
-
-		private val update_reverse_share = {
-				(current_reversed_shares: String,delta:String) => {
-				delta
-			}
-		}
 		
 		
 		//CODE_CC: add/remove need to check on allowedAccess as well!
@@ -265,7 +259,7 @@ package net.vrijheid.clouddrive.sharing {
 											updateMetaData(prefix + folder,getMetaData(item))
 											debug("After updateMetaData ACL on parent folder collection now is: " + getACL(prefix+folder))
 											//Add the reverse for quick lookup/delete. Map the prefix + folder (which is user specific for the receiving party) reversed to the orginal path to the data, i.e source_from_user + folder
-											share_client applyDelta(prefix + folder,source_from_user+"/"+folder,update_reverse_share)
+											share_client put(prefix + folder,source_from_user+"/"+folder)
 											debug("Created")
 										}
 										
@@ -293,7 +287,7 @@ package net.vrijheid.clouddrive.sharing {
 											//Add this file to this user's shares
 											//This changes so we can find it quickly when a user is removed (backward link)
 											//Add the reverse for quick lookup/delete. Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e source_from_user + "/" + relative_path
-											share_client applyDelta(target_path,source_from_user + "/" + relative_path,update_reverse_share)						
+											share_client put(target_path,source_from_user + "/" + relative_path)						
 										}	
 									})
 								}
@@ -326,7 +320,7 @@ package net.vrijheid.clouddrive.sharing {
 									updateMetaData(prefix + folder,getMetaData(item))
 									debug("After updateMetaData ACL on parent folder collection now is: " + getACL(prefix+folder))
 									//Add the reverse for quick lookup/delete.Map the prefix + folder (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder
-									share_client applyDelta(prefix + folder,prefix+"/"+folder,update_reverse_share)
+									share_client put(prefix + folder,prefix+"/"+folder)
 									debug("Created")							
 								}
 								
@@ -354,7 +348,7 @@ package net.vrijheid.clouddrive.sharing {
 									debug("After second update getACL " + target_path + " now is "+ getACL(target_path))
 									//Add this file to this user's shares
 									//This changes so we can find it quickly when a user is removed (backward link).Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder + relative_path
-									share_client applyDelta(target_path,prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,update_reverse_share)							
+									share_client put(target_path,prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path)							
 								}
 																	
 							}
