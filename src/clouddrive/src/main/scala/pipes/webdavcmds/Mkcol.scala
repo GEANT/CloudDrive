@@ -105,6 +105,8 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 		}
 		
 		override def <| (): Array[Byte] = {	
+			//CODE_CC if it was a MKCOL on a shared folder, call the addFolderToSharedFolder
+			
 			debug("MKCOL Command Sink <|: " + new String(header))
 			ctx.phase = 'allwritten
 			header 

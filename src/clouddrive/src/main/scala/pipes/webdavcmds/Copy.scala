@@ -187,6 +187,9 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 		}
 
 		override def <| () : Array[Byte] = {
+			
+			//CODE_CC if it was a copy to a shared folder, call the addFolderToSharedFolder
+			
 			ctx.phase = 'allwritten
  			header
 		}

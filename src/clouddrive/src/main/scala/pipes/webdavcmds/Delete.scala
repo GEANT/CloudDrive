@@ -116,6 +116,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 		}
 		
 		override def <| (): Array[Byte] = {
+			//CODE_CC if it was a delete from a shared folder, call the removeFolderFromSharedFolder (or File...From...)
 
 			debug("DELETE sink, entering <|")
 			debug("returning header")

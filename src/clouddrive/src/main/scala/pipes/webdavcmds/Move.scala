@@ -38,7 +38,7 @@ import java.io.{Serializable}
 
 package net.vrijheid.clouddrive.pipes.webdavcmds {
 	
-	//
+	//CODE_CC: make move to a shared file like COPY?
 	class MOVESink[T](implicit val ctx: RootContext[T])  extends Sharing[T] with PipeSink with Serializable  {
 		
 		var header :Array[Byte] = _
@@ -52,7 +52,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 			val fullpath = stripTrailingSlash("/" + ctx.user + ctx.verb.header("resource"))
 			
 			if(!allowedAccess(fullpath,ctx.user,ctx.verb)) {
-				debug("GET: opening store, No Access. Generating 403 response.")
+				debug("Move: opening store, No Access. Generating 403 response.")
 				val header = (HTTPServerHelper httpHeader(403,"text/plain","")) getBytes;
 				ctx.bypass.write(header)
 				ctx.bypass.close()	

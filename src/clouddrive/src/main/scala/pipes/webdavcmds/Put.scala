@@ -19,7 +19,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 		private var common_key: String = ""
 		private var tags: List[String] = List()
 		
-		//Helper function to make sure we have unique filenames in our "Comon" bin
+		//Helper function to make sure we have unique filenames in our "Common" bin
 		private def uniquely(path: String) = {
 			debug("Generating a unique file name in common_folder_root")
 			var newpath = path
@@ -49,11 +49,9 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 				throw new Exception()
 			}
 			
-			//TODO_TAG
-			//Again this elaborate condition prohibits PUT in Tag folders.
-			//Late, we'll just add a link, create the file inc "/Common" and set its tags
+			//We'll just add a link, create the file inc "/Common" and set its tags
 			allowed = (allowed(followLink(fullkey)))
-			//If it's a tagfolder, set the flag, create a key for the Coomon folder, and
+			//If it's a tagfolder, set the flag, create a key for the Common folder, and
 			//create a new store; also prefetch the tags
 			(isTagFolder_?(fullpath)) match {
 				case true => {
@@ -67,7 +65,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 						common_key = uniquely("/"+ctx.user+"/"+Config("common_folder_root")+"/"+filename)
 						//In this case, we MUST change ctx.recomputeFullPath to return the unique metadata name
 						ctx.recomputeFullPath = {(s: String) => {debug("---recomputed path = "+fullkey);fullkey}}
-						//This gullkey is actually the name of the symlink
+						//This fullkey is actually the name of the symlink
 						fullkey = uniquely(fullkey)
 						debug("!!!--!!! common,full key "+common_key+","+fullkey)
 						debug("***common key = "+common_key)
@@ -77,7 +75,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 						debug("***tags are "+tags)
 					}
 				case false =>  {
-					//Only do this when we are NOT in a serach folder; otherwise we can only uodate and not add files with the same name to a tag folder
+					//Only do this when we are NOT in a serach folder; otherwise we can only update and not add files with the same name to a tag folder
 					fullkey = followLink(fullkey)
 				}
 			}
@@ -106,6 +104,8 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 	
 		override def <| ()  : Array[Byte] = {
 			
+			//CODE_CC if a PUT in a shared file, call the Metadata.addFileToSharedFolder
+			
 			debug ("in <|")
 			ctx.phase = 'allwritten
 			
@@ -123,7 +123,7 @@ package net.vrijheid.clouddrive.pipes.webdavcmds {
 				tagdestination match {
 					case false =>
 					{
-						debug("No tg destination for PUT, adding directly")
+						debug("No tag destination for PUT, adding directly")
 						if(exists(fullkey)) {
 							debug("Update, setting metadata")
 							//Update necessary fields
