@@ -225,6 +225,8 @@ package net.vrijheid.clouddrive.sharing {
 		//add addToSharedFolder and propagate "upwards" to all of the interfaces?
 		def addFolderToSharedFolder(newone: String){
 			
+			//CODE_CC: how to deal with copying of data across back ends?
+			
 			//adds generic logic for adding a subfolder to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
 			//Logic:
@@ -300,6 +302,8 @@ package net.vrijheid.clouddrive.sharing {
 		
 		
 		def addFileToSharedFolder(newone: String){	
+			
+			//CODE_CC: how to deal with copying of data across back ends?
 			
 			//adds generic logic for adding a file to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
@@ -657,9 +661,17 @@ package net.vrijheid.clouddrive.sharing {
 			)		
 		}
 		
+		//This copies data to a Share(d folder)
 		def copyToShare(source: String,destination_share: String) {
 
 			//CODE_CC
+			//First check if it is all within one user space. In which case we can copy within the same backend
+			//Create an extra context and config, plus an extra storage layer based on a key (see the mkStorage signature)
+			//Open both storage layers
+			//Copy from source (read) to destination_share (write)
+			//Close both
+			
+			//Propgate this call back in addTo... functions
 
 		}
 		

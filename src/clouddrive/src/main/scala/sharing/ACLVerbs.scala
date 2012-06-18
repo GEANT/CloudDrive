@@ -59,7 +59,6 @@ package net.vrijheid.clouddrive.sharing {
 		val REMOVELOCK = "REMOVELOCK"
 		val DELETERESOURCE = "DELETERESOURCE"
 		val DELETECOLLECTION = "DELETECOLLECTION"
-		
 	}
 
     /*@SerialVersionUID(2011092L)

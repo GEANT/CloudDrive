@@ -66,7 +66,7 @@ package net.vrijheid.clouddrive.config {
 			
 			//Get the value
 			config contains key  match {
-				//Guard against the deault, then try global Config as well
+				//Guard against the default, then try global Config as well
 				case false => { Config(key,default)}
 				//"Just get it again"
 				case true => {config.get(key).get}
@@ -88,30 +88,7 @@ package net.vrijheid.clouddrive.config {
 			val user = ctx.user
 			
 			Config("authnMethod","voldemort") match {
-				
-				//Legacy
-				/**case s: String if s == "zookeeper" => {
-					//Load userland config parameters from ZooKeeper
-					val zk = ctx.zk
-					val path = Config("auth_prefix","/auth") + "/" + user
-					val children = zk getChildren path
-					var config = Map[String,String]()
-					children foreach {
-						(child) =>
-						{
-							val data = zk getData(path + "/" + child)
-							data match {
-								//Append config value when not empty
-								case "" => {}
-								case _ : String => {
-									config = config ++ Map(child -> data)
-								}
-							}
-						}
-					}
-					new Config(config)
-				}*/
-				
+								
 				case s: String if s == "voldemort" => {
 					val vmauthn = VMTalk getAuthnClient();
 					//return the map from voldemort minus the realm and ha1 keys
@@ -131,7 +108,7 @@ package net.vrijheid.clouddrive.config {
 		
 			try 
 			{
-				//OPEN the property file
+				//Open the property file
 				val file_is = new FileInputStream(new File(filename))  
 				//make property list and load values from file
 				val proplist = new Properties()

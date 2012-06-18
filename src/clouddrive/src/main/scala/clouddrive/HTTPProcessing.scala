@@ -33,6 +33,7 @@ import net.vrijheid.clouddrive.utils.Utils
 import net.vrijheid.clouddrive.httpsupport._
 import net.vrijheid.clouddrive.pipes._
 import net.vrijheid.clouddrive.pipes.webdavcmds._
+import net.vrijheid.clouddrive.providers._
 import net.vrijheid.clouddrive.config._
 import net.vrijheid.clouddrive.control._
 import net.vrijheid.clouddrive.utils._
@@ -65,7 +66,7 @@ package net.vrijheid.clouddrive {
 		//NOTE: temporary hack as long as we only use Voldemort
 		/* (Correct) behaviour: if it's a link, return the resolved link
 		   Otherwise: return the original path as it isn't a link
-		*/
+		
 		def followLink(path: String): String = {
 			storageClient getValue(path) match {
 				//Note: we translate this to the VMkey, the destination is relative
@@ -79,6 +80,7 @@ package net.vrijheid.clouddrive {
 				case _ => path
 			}			
 		}
+		*/
 			
 		//Based on Verb, dispatch to handler˜
 		def process() {
@@ -99,10 +101,13 @@ package net.vrijheid.clouddrive {
 				//We'll use the "res" value to fool the storage layer
 				ctx.storageclient = storageClient
 				val fullpath = "/" + ctx.user + ctx.verb.header("resource")
-				val res = storageClient getValue(fullpath) match {
+				val md = MetaDataFactory(ctx.userConfig("metadata_store"))
+				/*val res = storageClient getValue(fullpath) match {
 					case link: VMLink => link.destination _1
 					case _ => ctx.verb.header("resource")
-				}
+				}*/
+				
+				val res = md.followLink(fullpath)
 				
 				//CODE_CC: at this point we have the FS pointer, set the owner
 				//Now we can follow a link IF it is a shared file, and determine the owner
