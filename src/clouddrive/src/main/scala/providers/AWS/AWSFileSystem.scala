@@ -55,7 +55,7 @@ package net.vrijheid.clouddrive.providers.aws {
 			}
 			case false => {
 				debug("following link for other user (sharing etc....)")
-				if(sharedSource(key)) {
+				if(sharedResource(key)) {
 					debug("shared resource, following link")
 					followLink(stripTrailingSlash(key))
 				}

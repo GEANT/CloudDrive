@@ -57,7 +57,7 @@ package net.vrijheid.clouddrive.sharing {
 		def isSharedFolder_?(path: String): Boolean
 		
 		def inSharedFolder(path: String): Boolean
-		def sharedSource(path: String):Boolean
+		def sharedResource(path: String):Boolean
 
 		def addFolderToSharedFolder(newone: String)		
 		def addFileToSharedFolder(newone: String)
@@ -66,6 +66,8 @@ package net.vrijheid.clouddrive.sharing {
 		def removeSharedFolder(source: String,folder: String)
 		def removeFolderFromSharedFolder(removee: String)
 		def removeFileFromSharedFolder(removee: String)
+
+		def copyToShare(source: String,destination_share: String) 
 		
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer])
 		def changeACLOnSharedFolder(source: String,gone: ACLContainer)
@@ -98,7 +100,7 @@ package net.vrijheid.clouddrive.sharing {
 		def isSharedFolder_?(path: String): Boolean = {delegate.isSharedFolder_? (path)}
 		
 		def inSharedFolder(path: String): Boolean = delegate.inSharedFolder (path)
-		def sharedSource(path: String):Boolean = { delegate sharedSource(path)}
+		def sharedResource(path: String):Boolean = { delegate sharedResource(path)}
 
 		def addFolderToSharedFolder(newone: String) {delegate.addFolderToSharedFolder(newone)}		
 		def addFileToSharedFolder(newone: String) {delegate.addFileToSharedFolder(newone)}		
@@ -107,6 +109,8 @@ package net.vrijheid.clouddrive.sharing {
 		def removeSharedFolder(source: String,folder: String) {delegate.removeSharedFolder(source,folder)}
 		def removeFolderFromSharedFolder(removee: String) {delegate.removeFolderFromSharedFolder(removee)}
 		def removeFileFromSharedFolder(removee: String) {delegate.removeFileFromSharedFolder(removee)}		
+		
+		def copyToShare(source: String,destination_share: String) {delegate.copyToShare(source,destination_share)}
 		
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer]) {delegate.changeACLOnSharedFolder(source,gone)}
 		def changeACLOnSharedFolder(source: String,gone: ACLContainer) {delegate.changeACLOnSharedFolder(source,gone)}

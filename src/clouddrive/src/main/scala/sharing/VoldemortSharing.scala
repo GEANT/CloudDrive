@@ -94,10 +94,12 @@ package net.vrijheid.clouddrive.sharing {
 			getShared(source)
 		}
 		
-		//Does the current user have a share underr this path name?
+		//Does the current user have a share under this path name?
 		def sharedNameExists(path: String): Boolean = { 
-			share_client.getValue_?(path) match {
-				case s: Some[String] => true
+			store_client.getValue_?(path) match {
+				case s: Some[VMNode] => {
+					isShared_?(path)
+				}
 				case None => false
 			}
 		}		
@@ -163,44 +165,210 @@ package net.vrijheid.clouddrive.sharing {
 			well 
 		}	
 		
-		def sharedSource(path: String):Boolean = {
+		//This indicates that the actual resource is shared (i.e. is a link to another resource). We see this by looking at the user namespace it resides
+		def sharedResource(path: String):Boolean = {
 			val user = getUserNameFromPath(path)
-			if (!(ctx.user == getUserNameFromPath(path)) && exists("/" + user)) { true }
+			if (!(ctx.user == user) && exists("/" + user)) { true }
 			else {false}
 		}
 		
 		
+		private val update_reverse_share = {
+				(current_reversed_shares:List[String],delta:String) => {
+				(delta :: current_reversed_shares).distinct
+			}
+		}
+		
+		private val delete_reverse_share = {
+				(current_reversed_shares:List[String],delta:String) => {
+				(current_reversed_shares filterNot (List(delta).contains))
+			}
+		}
+		
+		//This will allow us to quickly map a target shared folder (e.g. one owned by the recipient side of a share) to the source.
+		//This can then used when adding/removing shares
+		private def getSourceFromSharedTarget(sharedfoldertarget: String): String = {
+			
+			//If it's a hared resource...
+			sharedResource(sharedfoldertarget) match {
+				
+				//Get the source of the target 
+				case true => {
+					followLink(sharedfoldertarget)
+				}
+				
+				//Nope, return what we got
+				case false => {
+					sharedfoldertarget
+				}
+			}
+		}
+				
+		//Returns THE list of shared files and links. Both the source and other links.
+		private def getLinkedShares(inpath: String):List[String] = {
+			
+			//If the inpath == source, do a direct lookup on the reverse index
+			//Otherwise, do a getSourceFromSharedTarget and perform the lookup on that
+			val source = followLink(inpath)
+			if (source == inpath) {List(inpath)}
+			else {
+				share_client getValue_?(inpath) match {
+					case Some(parents) => parents
+					case None => List()
+				}
+			}
+		}
+		
+				
 		//CODE_CC: add/remove need to check on allowedAccess as well!
 		
 		//add addToSharedFolder and propagate "upwards" to all of the interfaces?
 		def addFolderToSharedFolder(newone: String){
-			//First, let's create the new ACL for this path
-			//val oldACL = getACL(source)
-			//val newACL = oldACL ++ newComers
-			//Now add the shared folder
-			//getSharedAs should guarantee that a folder name on the toplevel stays preserved. If it's a subfolder, it gets the identical name
-			//addSharedFolder(source,getSharedAs(source),newACL)
 			
-			//CODE_CC: add generic logic for adding a subfolder, also from a "sharee" perspectibe and propgate the changes to other users
+			//adds generic logic for adding a subfolder to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
 			//Logic:
-			//1 get the shared toplevel from the folder
-			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
-			//3 translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
-			//4 get the parent's ACL and thus the other users
-			//5 create the shared folder for the user and all other ACL users, including reverseshareindex entries
-			
+			//Get the shared toplevel from the folder
+			val parent_prefix = stripTrailingSlash("/"+ctx.user+getParentFolder(newone))
+			val parent_source = followLink(parent_prefix)
+			//Translate it to the shared "source folder". Continue only upon success
+			val source = (exists(parent_source) && isSharedFolder_?(parent_source)) match {
+				
+				//The actual parent exists and is shared
+				case true => {
+					//Translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
+					val new_folder_name = fileNameFromPath(newone)
+					val parent_share = parent_source + "/" + new_folder_name
+					val shared_content = treeAsList(newone).reverse
+					//Create the link in the "master", i.e. the orginal sharer for al content
+					val source_parent_acl = getACL(parent_source)
+					//Get all the linked share users for this folder, so we now how to propagate
+					var other_linked_parents = getLinkedShares(parent_source)
+					//Now we first copy all the content to the owner of the share, and remove it from "this" user
+					//I.e. if a party invited to the srae, shares a folder it gets copied to the owner of the share and then "shared back"
+					shared_content.foreach(
+						(item) => {
+							val relative_path = item drop(parent_prefix length)
+							val new_owner = parent_source+"/"+relative_path
+							
+							if(new_owner != item){
+								//We copy the resource data to the new owner (the "master" owner of the share). But only if it isnot the master sharer ro begin with
+								copyResourceData(item,new_owner)
+								//Then we delete it if necessary. Effectively we changed "mastwr owner" of the data by moving the metadata pointers
+								delete(item)
+								//This line protects the original source and makes sure it gets a link back per resource/collection
+								other_linked_parents = newone :: other_linked_parents
+							}
+							
+							//Get the parent's linked shares
+							//Create the shared folder for the user and all other users, including reverseshareindex entries
+							//We collect the users via getSourceFromSharedTarget
+														
+							other_linked_parents.foreach { 
+								(parent) => {
+								
+								val new_link = parent+"/"+relative_path
+								
+								isCollection(new_owner) match {
+									
+									//It's a collection, create it
+									case true => {
+										createCollection(new_link)
+										updateMetaData(new_link,getMetaData(new_owner))
+										setACL(new_link,source_parent_acl)
+										share_client applyDelta(new_owner,new_link,update_reverse_share)
+									}
+									
+									//It's a (nested) resource, link to it
+									case false => {
+										createLink(new_owner,new_link,source_parent_acl)
+										share_client applyDelta(new_owner,new_link,update_reverse_share)
+									}
+								}
+							}
+						}
+					})									
+				}
+				
+				case false => {
+					//NO SHARE
+					//Nothing or Exception, or ....
+					throw new NoSuchShareException
+				}
+			}
 		}
 		
-		def addFileToSharedFolder(newone: String){
-			//CODE_CC Generic logic to add a file from a shared folder, also for a "sharee"
+		
+		def addFileToSharedFolder(newone: String){	
+			
+			//adds generic logic for adding a file to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
 			//Logic:
-			//1 get the shared toplevel from the folder
-			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
-			//3 translate the newone to a "shared file" and its direct parent via reversedshareindex on the parent
-			//4 get the parent's ACL and thus the other users
-			//5 create the shared file for the user and all other ACL users, including reverseshareindex entries
+			//Get the shared toplevel from the folder
+			val parent_prefix = stripTrailingSlash("/"+ctx.user+getParentFolder(newone))
+			val parent_source = followLink(parent_prefix)
+			//Translate it to the shared "source folder". Continue only upon success
+			val source = (exists(parent_source) && isSharedFolder_?(parent_source)) match {
+				
+				//The actual parent exists and is shared
+				case true => {
+					//Translate the newone to a "shared file" and its direct parent via followlink on the parent
+					val new_file_name = fileNameFromPath(newone)
+					val parent_share = parent_source + "/" + new_file_name
+					//Create the link in the "master", i.e. the orginal sharer for al content
+					val source_parent_acl = getACL(parent_source)
+					//Get all the linked share users for this folder, so we now how to propagate
+					var other_linked_parents = getLinkedShares(parent_source)
+					//Now we first copy all the content to the owner of the share, and remove it from "this" user
+					//I.e. if a party invited to the srae, shares a folder it gets copied to the owner of the share and then "shared back"
+
+					val relative_path = newone drop(parent_prefix length)
+					val new_owner = parent_source+"/"+relative_path
+					
+					if(new_owner != newone){
+						//We copy the resource data to the new owner (the "master" owner of the share). But only if it is not the master sharer to begin with
+						copyResourceData(newone,new_owner)
+						//Then we delete it if necessary. Effectively we changed "master owner" of the data by moving the metadata pointers
+						delete(newone)
+						//This line protects the original source and makes sure it gets a link back for the file (resource)
+						other_linked_parents = newone :: other_linked_parents
+					}
+					
+					//Get the parent's linked shares 
+					//Create the shared folder for the user and all other users, including reverseshareindex entries
+					//We collect the users via getSourceFromSharedTarget
+												
+					other_linked_parents.foreach { 
+						(parent) => {
+						
+						val new_link = parent+"/"+relative_path
+						
+						isCollection(new_owner) match {
+							
+							//It's a collection, create it
+							case true => {
+								createCollection(new_link)
+								updateMetaData(new_link,getMetaData(new_owner))
+								setACL(new_link,source_parent_acl)
+								share_client applyDelta(new_owner,new_link,update_reverse_share)
+							}
+							
+							//It's a (nested) resource, link to it
+							case false => {
+								createLink(new_owner,new_link,source_parent_acl)
+								share_client applyDelta(new_owner,new_link,update_reverse_share)
+							}
+						}
+					}}									
+				}
+				
+				case false => {
+					//NO SHARE
+					//Nothing or Exception, or ....
+					throw new NoSuchShareException
+				}
+			}
+			
 		}
 		
 		/*The source parameter should be a full path withouth the user prefix,
@@ -232,6 +400,7 @@ package net.vrijheid.clouddrive.sharing {
 					
 					combined_acls.keys.foreach( { (key) => {
 						key match {
+							//Note: ACLSuperSet explosed to ACLUser -> maybe this clause is redundant.
 							case a_group: ACLGroup => {
 								//Double check: we only give shared to groups that exists
 								if (groupExists(a_group.name)) {
@@ -259,7 +428,8 @@ package net.vrijheid.clouddrive.sharing {
 											updateMetaData(prefix + folder,getMetaData(item))
 											debug("After updateMetaData ACL on parent folder collection now is: " + getACL(prefix+folder))
 											//Add the reverse for quick lookup/delete. Map the prefix + folder (which is user specific for the receiving party) reversed to the orginal path to the data, i.e source_from_user + folder
-											share_client put(prefix + folder,source_from_user+"/"+folder)
+											//TBD - change to switch the key and value here!!! 
+											share_client applyDelta(source_from_user+"/"+folder,prefix + folder,update_reverse_share)
 											debug("Created")
 										}
 										
@@ -287,7 +457,7 @@ package net.vrijheid.clouddrive.sharing {
 											//Add this file to this user's shares
 											//This changes so we can find it quickly when a user is removed (backward link)
 											//Add the reverse for quick lookup/delete. Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e source_from_user + "/" + relative_path
-											share_client put(target_path,source_from_user + "/" + relative_path)						
+											share_client applyDelta(source_from_user + "/" + relative_path,target_path,update_reverse_share)						
 										}	
 									})
 								}
@@ -320,7 +490,7 @@ package net.vrijheid.clouddrive.sharing {
 									updateMetaData(prefix + folder,getMetaData(item))
 									debug("After updateMetaData ACL on parent folder collection now is: " + getACL(prefix+folder))
 									//Add the reverse for quick lookup/delete.Map the prefix + folder (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder
-									share_client put(prefix + folder,prefix+"/"+folder)
+									share_client applyDelta(source_from_user+"/"+folder,prefix + folder,update_reverse_share)
 									debug("Created")							
 								}
 								
@@ -348,7 +518,7 @@ package net.vrijheid.clouddrive.sharing {
 									debug("After second update getACL " + target_path + " now is "+ getACL(target_path))
 									//Add this file to this user's shares
 									//This changes so we can find it quickly when a user is removed (backward link).Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder + relative_path
-									share_client put(target_path,prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path)							
+									share_client applyDelta(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,target_path,update_reverse_share)							
 								}
 																	
 							}
@@ -366,25 +536,64 @@ package net.vrijheid.clouddrive.sharing {
 		
 		
 		def removeFolderFromSharedFolder(removee: String) {
-			//CODE_CC Generic logic to remove a folder from a shared folder, also for a "sharee"
+			//Generic logic to remove a folder from a shared folder, also for a "sharee"
+
 			
-			//Logic:
-			//1 get the shared toplevel from the folder
-			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
-			//3 translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
-			//4 get the parent's ACL and thus the other users
-			//5 remove the shared folder for the user and all other ACL users, including reverseshareindex entries
+			//Get the parents etc so we can remove it
+			val parent_prefix = stripTrailingSlash("/"+ctx.user+getParentFolder(removee))
+			val parent_source = followLink(parent_prefix)
+			//Translate it to the shared "source folder". Continue only upon success
+			val source = (exists(parent_source) && isSharedFolder_?(parent_source)) match {
+			
+				//Get the shared content in the subtree
+				case true => {
+					val shared_content = treeAsList(removee).reverse
+					//For all data, remove it...
+					shared_content.foreach{(item) => {
+						val sharees = getLinkedShares(item)
+						//for all users that have a link
+						sharees.foreach{(sharee) => {
+							delete(sharee)
+						}}
+						//Delete the original data
+						delete(item)
+						//And the reverse index for the shares
+						share_client delete(followLink(item))
+					}}
+				}
+				
+				case false => { throw new NoSuchShareException }
+				
+			}
 		}
 		
 		def removeFileFromSharedFolder(removee: String){
-			//CODE_CC Generic logic to remove a file from a shared folder, also for a "sharee"
+			//Generic logic to remove a file from a shared folder, also for a "sharee"
 			
-			//Logic:
-			//1 get the shared toplevel from the folder
-			//2 translate it to the shared "source folder" via reversedshareindex. Continue only upon success
-			//3 translate the newone to a "shared folder" and its direct parent via reversedshareindex on the parent
-			//4 get the parent's ACL and thus the other users
-			//5 remove the shared folder for the user and all other ACL users, including reverseshareindex entries
+			//Get the parents etc so we can remove it
+			val parent_prefix = stripTrailingSlash("/"+ctx.user+getParentFolder(removee))
+			val parent_source = followLink(parent_prefix)
+			//Translate it to the shared "source folder". Continue only upon success
+			val source = (exists(parent_source) && isSharedFolder_?(parent_source)) match {
+			
+				//Get the shared content in the subtree
+				case true => {
+					//For all data, remove it...
+					val sharees = getLinkedShares(removee)
+					//for all users that have a link
+					sharees.foreach{(sharee) => {
+						delete(sharee)
+					}}
+					//Delete the original data
+					delete(removee)
+					//And the reverse index for the shares
+					share_client delete(followLink(removee))
+				}
+				
+				case false => { throw new NoSuchShareException }
+				
+			}
+			
 		}
 		
 		
@@ -423,8 +632,8 @@ package net.vrijheid.clouddrive.sharing {
 										val target_path = "/"+user+"/"+Config("shared_folder_root")+"/"+stripTrailingSlash(stripLeadingSlash(folder)) + relative_path
 										//Now we can delete the link
 										delete(target_path)
-										//And remove it 
-										share_client delete(target_path)
+										//And remove it
+										share_client applyDelta(followLink(target_path),target_path,delete_reverse_share)
 									})
 								}
 							}
@@ -437,7 +646,7 @@ package net.vrijheid.clouddrive.sharing {
 								//Now we can create the link
 								delete(target_path)	
 								//And remove it 
-								share_client delete(target_path)							
+								share_client applyDelta(followLink(target_path),target_path,delete_reverse_share)
 							}
 						}
 					}}
@@ -447,6 +656,15 @@ package net.vrijheid.clouddrive.sharing {
 				}
 			)		
 		}
+		
+		def copyToShare(source: String,destination_share: String) {
+
+			//CODE_CC
+
+		}
+		
+		
+		//TBD: also add this for subfolders using addToSharedFolder/removeFromSharedFolder
 		
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer]) {
 			//First, let's create the new ACL for this path

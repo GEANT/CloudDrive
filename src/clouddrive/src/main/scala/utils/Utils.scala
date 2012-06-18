@@ -386,6 +386,8 @@ package net.vrijheid.clouddrive.utils {
 			if (path.length > 0) { path.slice(0,(findIndexOfReverse(path,"/") - 1))}
 			else path
 		}
+		
+		def getParentFolder = pathFromFullPath _
 				
 		//OK
 		def dropUserIndexFromPath(path: String,user: String): String  = {

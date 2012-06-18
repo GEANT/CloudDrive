@@ -266,7 +266,7 @@ package net.vrijheid.clouddrive.utils {
 	object VMTalk extends Treatise {
 		
 		var storageClient: VMClient[String,VMNode] = null
-		var shareClient: VMClient[String,String] = null
+		var shareClient: VMClient[String,List[String]] = null
 		var authNclient: VMClient[String,Map[String,String]] = null
 		var incomingDataVMClient: VMClient[String,Long] = null
 		var outgoingDataVMClient: VMClient[String,Long] = null
@@ -277,7 +277,6 @@ package net.vrijheid.clouddrive.utils {
 		var tagSetClient: VMClient[String,Map[String,List[String]]] = null
 		var groupClient: VMClient[String,List[String]] = null
 		var userToGroupsClient:VMClient[String,List[String]] = null
-		var sharesforUserClient:VMClient[String,Map[String,List[String]]] = null
 		var guestclient: VMClient[String,Map[String,String]] = null		 
 		
 		val bootstrapUrls = Config("voldemort","tcp://localhost:6666")
@@ -314,8 +313,8 @@ package net.vrijheid.clouddrive.utils {
                  if (shareClient == null) {
                          debug("Getting VM share client")
                          //val factory = new SocketStoreClientFactory(clientconfig);             
-                         val tmp: StoreClient[String,String] = factory getStoreClient("reverseshareindex")
-                         shareClient = new VMClient[String,String](tmp)
+                         val tmp: StoreClient[String,List[String]] = factory getStoreClient("reverseshareindex")
+                         shareClient = new VMClient[String,List[String]](tmp)
                  }
                  debug("shareClient - null?" + (shareClient == null))
                  shareClient 
@@ -455,12 +454,6 @@ package net.vrijheid.clouddrive.utils {
 			
 			userToGroupsClient
 		}	
-		
-		def getSharesForUserClient() = {
-			debug("getting sharesforUserClient")
-			val tmp: StoreClient[String,Map[String,List[String]]] = factory getStoreClient("sharesforusers")
-			sharesforUserClient = new VMClient[String,Map[String,List[String]]](tmp)
-		}
 			
 		def getGuestClient() = {
 			debug("Getting VM guest client")
