@@ -245,7 +245,7 @@ package net.vrijheid.clouddrive.providers.aws {
 		}
 
 		def getMetaData() : Map[String,String] = {
-			//Return metadata from ZK 
+			//Return metadata from metadata store
 			getMetaData(fullkey)
 		}
 

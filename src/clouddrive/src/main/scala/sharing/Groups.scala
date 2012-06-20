@@ -186,6 +186,7 @@ package net.vrijheid.clouddrive.sharing {
 				g2uclient.applyDelta(group,user,updater)
 				//add user to reverse map via u2gclient
 				u2gclient.applyDelta(user,group,updater)
+				//CODE_CC add shares for group to user space!!!!
 			}			
 		}
 				
@@ -215,7 +216,7 @@ package net.vrijheid.clouddrive.sharing {
 				
 			}
 			
-			//CODE CC: remove all shares here as well for the groups of this user???
+			//CODE CC: remove all shares here as well for the groups of this user
 			//Couples more tightly between group and share management.
 			// Traverse the "shares" tree for the user and remove "dead" symlinks based on groups ACL
 			// Expensive, but will work. Other option: add a group2shares store.

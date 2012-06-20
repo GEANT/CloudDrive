@@ -267,6 +267,7 @@ package net.vrijheid.clouddrive.utils {
 		
 		var storageClient: VMClient[String,VMNode] = null
 		var shareClient: VMClient[String,List[String]] = null
+		var groups2sharesClient: VMClient[String,List[String]] = null
 		var authNclient: VMClient[String,Map[String,String]] = null
 		var incomingDataVMClient: VMClient[String,Long] = null
 		var outgoingDataVMClient: VMClient[String,Long] = null
@@ -318,6 +319,18 @@ package net.vrijheid.clouddrive.utils {
                  }
                  debug("shareClient - null?" + (shareClient == null))
                  shareClient 
+
+         }
+
+        def getGroups2SharesClient() = {
+                 if (shareClient == null) {
+                         debug("Getting VM share client")
+                         //val factory = new SocketStoreClientFactory(clientconfig);             
+                         val tmp: StoreClient[String,List[String]] = factory getStoreClient("groups2shares")
+                         groups2sharesClient = new VMClient[String,List[String]](tmp)
+                 }
+                 debug("groups2shares - null?" + (groups2sharesClient == null))
+                 groups2sharesClient 
 
          }
 

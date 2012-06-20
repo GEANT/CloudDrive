@@ -102,6 +102,25 @@ package net.vrijheid.clouddrive.config {
 				
 			 	case s: String if s == "static" => { new Config(Map())}
 			}
+		}
+		
+		def userConfig(user: String) : Config = {
+						
+			Config("authnMethod","voldemort") match {
+								
+				case s: String if s == "voldemort" => {
+					val vmauthn = VMTalk getAuthnClient();
+					//return the map from voldemort minus the realm and ha1 keys
+					val config = (vmauthn getValue_?(user)) match {
+						case None => Map[String,String]()
+						case Some(map) => map -- List("realm","ha1")
+					}
+					//vmauthn.factory.close;
+					new Config(config)
+				}
+				
+			 	case s: String if s == "static" => { new Config(Map())}
+			}
 		}		
 
 		def loadConfig(filename : String) = synchronized {

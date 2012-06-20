@@ -34,8 +34,9 @@ import net.vrijheid.clouddrive.config._
 import net.vrijheid.clouddrive.httpsupport._
 import java.util.{List => JList,Vector,Iterator,Date}
 import net.vrijheid.clouddrive.providers._
+import net.vrijheid.clouddrive.pipes._
 import voldemort.versioning._
-import java.io.{Serializable}
+import java.io.{Serializable,File,FileOutputStream,InputStream}
 
 package net.vrijheid.clouddrive.sharing {
 
@@ -303,7 +304,7 @@ package net.vrijheid.clouddrive.sharing {
 		
 		def addFileToSharedFolder(newone: String){	
 			
-			//CODE_CC: how to deal with copying of data across back ends?
+			//CODE_CC: use smartCopy to deal with copying of data across back ends. Propagate to other add* methods
 			
 			//adds generic logic for adding a file to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
@@ -662,7 +663,7 @@ package net.vrijheid.clouddrive.sharing {
 		}
 		
 		//This copies data to a Share(d folder)
-		def copyToShare(source: String,destination_share: String) {
+		def smartCopy(source: String,destination_share: String) {
 
 			//CODE_CC
 			//First check if it is all within one user space. In which case we can copy within the same backend
@@ -670,6 +671,67 @@ package net.vrijheid.clouddrive.sharing {
 			//Open both storage layers
 			//Copy from source (read) to destination_share (write)
 			//Close both
+			
+			val source_user = getUserNameFromPath(source)
+			val destination_user = getUserNameFromPath(destination_share)
+			
+			//Make sure the current user is either the source or destination
+			if(!((source_user == ctx.user)|| (destination_user == ctx.user))) {throw new NoSuchShareException }
+			//Setup configs, contexts and back ends
+			val source_resource = dropUserIndexFromPath(source,source_user)
+			val destination_resource = dropUserIndexFromPath(destination_share,destination_user)
+			val source_http_verb = new WEBSITE(Map("resource" -> source_resource),'read)
+			val destination_http_verb = new WEBSITE(Map("resource" -> destination_resource),'write)
+			implicit val source_context = new LiftContext(source_http_verb)
+			implicit val destination_context = new LiftContext(destination_http_verb)
+			source_context.userConfig = Config.userConfig(source_context)
+			destination_context.userConfig = Config.userConfig(destination_context)
+			source_context.storageclient = VMTalk.getStorageClient()
+			destination_context.storageclient = VMTalk.getStorageClient()
+			val source_storage_type = getBackend(source)
+			val destination_storage_type = backendFromPath(destination_share)
+			source_context.store =  Storage.mkStorage(source_storage_type,source_resource)(source_context)
+			//Check: if the store types are the same, copy from the src store, get the guid and set the metadata. Most common case
+			(source_storage_type == destination_storage_type) match {
+				
+				//TBD: add metadata copy/... below? Including new friends get/setBackend??
+				
+				//Yep, "fast" copy
+				case true => {
+					
+					//Copy the data using the same backend
+					source_context.store open 'read
+					val newguid = source_context.store copy()
+					createResource(destination_share)
+					copyResourceData(source,destination_share)
+					setBackend(destination_share,destination_storage_type)
+					setOriginal(destination_share,newguid)
+					
+				}
+				
+				
+				//Copy using the source backend to the destination backend
+				//We use an intermediate local file so we can abstract it over all back ends using transferLocalFile
+				case false => {
+					destination_context.store = Storage.mkStorage(destination_storage_type,destination_resource)(destination_context)
+					val src_store  = source_context.store
+					val dest_store = destination_context.store
+					val newguid = UUID()
+					src_store.open('read)
+					dest_store.open('write)
+					//Download the data to a local file
+					val tmpfile = File.createTempFile(newguid,".cloud")
+					val outstream = new FileOutputStream(tmpfile)
+					in2out(src_store.input,outstream,getPutLength(source))
+					src_store close()
+					outstream close()
+					//Copy it to the remote backend
+					dest_store.transferLocalFile(tmpfile,newguid)
+					//Set the metadata etc
+					copyResourceData(source,destination_share)
+					setBackend(destination_share,destination_storage_type)
+					setOriginal(destination_share,newguid)				}
+			}
 			
 			//Propgate this call back in addTo... functions
 

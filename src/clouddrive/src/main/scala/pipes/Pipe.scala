@@ -184,7 +184,18 @@ package net.vrijheid.clouddrive.pipes {
 				case "s3" => {new AWSFileSystem(key) }
 				case _ => {new FileSystemStore(key)}
 			}
+		}
+		
+		def mkStorageFromPath[T](path: String)(implicit ctx: RootContext[T]): Storage = synchronized {
 			
+			val md = new MetaData()
+			val kind = md backendFromPath(path)
+			kind match {
+				
+				case "filesystem" => {new FileSystemStore(path) }
+				case "s3" => {new AWSFileSystem(path) }
+				case _ => {new FileSystemStore(path)}
+			}			
 		}
 	}
 

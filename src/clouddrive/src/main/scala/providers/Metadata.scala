@@ -132,6 +132,13 @@ package net.vrijheid.clouddrive.providers {
 		def getFileOwner(path: String): String
 		def isFileOwner_?(path:String):Boolean 
 
+		def setBackend(path:String,backend:String) {updateMetaData(path,"backend",backend)}
+		def getBackend(path:String):String = {getMetaData(path,"backend")}
+		def backendFromPath(path: String): String = {
+			val config = Config.userConfig(getUserNameFromPath(path))
+			config.get("storage","filesystem")
+		}
+		
 		def hasChildren(key : String): Boolean 
 		def isCollection(fullkey : String): Boolean
 		def isResource(fullkey: String): Boolean = { ! isCollection(fullkey)}
