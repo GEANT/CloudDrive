@@ -29,6 +29,7 @@
  */
 import net.vrijheid.clouddrive.utils._
 import net.vrijheid.clouddrive.sharing._
+import net.vrijheid.clouddrive.providers._
 import net.vrijheid.clouddrive.exceptional._
 
 
@@ -52,19 +53,19 @@ package net.vrijheid.clouddrive.sharing {
 		
 		def deleteEmptyGroup(group: String) 
 		
-		protected def deleteGroup (group: String) 
+		def deleteGroup (group: String) 
 
 		def addGuestUser(user: String,config: Map[String,String]) 
 		
 		def deleteGuestUser(user: String) 
 		
-		protected def addUsertoGroup(group: String,user: String) 
+		def addUsertoGroup(group: String,user: String) 
 				
-		protected def deleteUserFromGroup(group: String,user: String) 
+		def deleteUserFromGroup(group: String,user: String) 
 		
 		def groupsForUser(user: String): List[String] 
 		
-		protected def deleteUserFromAllGroups(user: String) 
+		def deleteUserFromAllGroups(user: String) 
 		
 		def userInGroup(group:String,user:String): Boolean 
 		
@@ -80,6 +81,22 @@ package net.vrijheid.clouddrive.sharing {
 		val u2gclient = VMTalk.getUserToGroupClient
 		val g2uclient = VMTalk.getGroupClient
 		val guest_client = VMTalk.getGuestClient
+		val groups_share_client = VMTalk.getGroups2SharesClient
+		val me_share_client = VMTalk.getShareClient
+		
+		var sharer: SharingLike = _
+
+		private val update_group_share = {
+				(group_shares:List[String],delta:String) => {
+				(delta :: group_shares).distinct
+			}
+		}
+		
+		private val delete_group_share = {
+				(group_shares:List[String],delta:String) => {
+				(group_shares filterNot (List(delta).contains))
+			}
+		}
 		
 		def getUsers(group: String):List[String] = {
 			if(groupExists(group)) {g2uclient.getValue(group)}
@@ -146,7 +163,7 @@ package net.vrijheid.clouddrive.sharing {
 			}
 		}
 		
-		protected def deleteGroup (group: String) {
+		def deleteGroup (group: String) {
 			
 			//FIrst who, is still a member
 			val members = g2uclient getValue group;
@@ -154,7 +171,11 @@ package net.vrijheid.clouddrive.sharing {
 			//This also removes the groups from the users list via deleteUserFromGroup
 			members.foreach(member => deleteUserFromGroup(group,member))
 			//Now, delete the group (effectively empty)
-			g2uclient delete group;			
+			g2uclient delete group;	
+			//1 Get the shares for this group's users
+			//2 Per share: see if a user has access (loop over users)
+			//YES: delete share/permissions
+			//NO: do nothing		
 		}
 
 		def addGuestUser(user: String,config: Map[String,String]) {
@@ -169,7 +190,7 @@ package net.vrijheid.clouddrive.sharing {
 			guest_client delete user
 		}
 		
-		protected def addUsertoGroup(group: String,user: String) {
+		def addUsertoGroup(group: String,user: String) {
 			
 			//This is the function that takes a VMNode, matches the type and merges the new metadata in
 			//It is passed to applyDelta of vmstorage 
@@ -187,10 +208,56 @@ package net.vrijheid.clouddrive.sharing {
 				//add user to reverse map via u2gclient
 				u2gclient.applyDelta(user,group,updater)
 				//CODE_CC add shares for group to user space!!!!
+				//1 Get the shares for this group
+				groups_share_client getValue_?(group) match {
+					
+					case Some(shares) => {
+						//2 Per share: see if the user is already receiving the share as user
+						shares.foreach{
+							(share) => {
+								//Determine the ACL (note that it is the same, as the group already exists in the ACL by definition, i.e. we add a user to a group and look at the EXISTING shares of the group)
+								val ACL = sharer.asInstanceOf[MetaDataLike].getACL(share)
+								var newACL: Map[_ <:ACLContainer,List[String]] = Map()
+								var userAlreadyHasShare = false
+								ACL.foreach{
+									(pair) => {
+										val aclcontainer = pair _1
+										val aclacl = pair _2;
+										if ((aclcontainer.isInstanceOf[ACLUser]) && (aclcontainer.asInstanceOf[ACLUser].user == user)){
+											userAlreadyHasShare = true
+										}
+										else {newACL = newACL ++ Map(aclcontainer -> aclacl)}
+									}
+								}
+								
+								if (userAlreadyHasShare) {
+									//handle deduplication, no need to add the new link as the user already has it
+									//val newACL = ACL - acluser.asInstanceOf[ACLContainer]
+									//Set it on the master share
+									sharer.asInstanceOf[MetaDataLike].setACL(share,newACL)
+									//Update the ACL on all the referenced sharees
+									//Get all the links, update their ACLs
+									sharer.getLinkedShares(share).foreach({
+										(shard) => {sharer.asInstanceOf[MetaDataLike].setACL(shard,newACL)}
+									})
+								} else {
+									//We only need to create a new link and add it to the reversed share index
+									//Create a new link for the new user, with the new ACL
+									val target = sharer.generateLinkForShare(share,user)
+									sharer.asInstanceOf[MetaDataLike].createLink(share,target,ACL)
+								}
+							}
+						}					
+					}
+					
+					case None => {
+							//NOOP
+						}
+				}
 			}			
 		}
 				
-		protected def deleteUserFromGroup(group: String,user: String) {
+	 	def deleteUserFromGroup(group: String,user: String) {
 			
 			val updater = {
 				(oldval: List[String],delta: String) => {
@@ -206,6 +273,11 @@ package net.vrijheid.clouddrive.sharing {
 				}
 			}
 			
+			//1 Get the shares for this group's users
+			//2 Per share: see if a user has access (loop over users)
+			//YES: delete share/permissions
+			//NO: do nothing
+			
 			if(userInGroup(group,user)) {
 
 				//Delete the user from the group
@@ -215,13 +287,6 @@ package net.vrijheid.clouddrive.sharing {
 				u2gclient.applyDelta(user,group,updater2)
 				
 			}
-			
-			//CODE CC: remove all shares here as well for the groups of this user
-			//Couples more tightly between group and share management.
-			// Traverse the "shares" tree for the user and remove "dead" symlinks based on groups ACL
-			// Expensive, but will work. Other option: add a group2shares store.
-			
-			//Other option: this is mixed in with VoldemortSharing - do an override on this method or a slight variation.
 		}
 		
 		def groupsForUser(user: String): List[String] = {
@@ -233,10 +298,14 @@ package net.vrijheid.clouddrive.sharing {
 			
 		}
 		
-		protected def deleteUserFromAllGroups(user: String) {
+		def deleteUserFromAllGroups(user: String) {
 			
 			val groups = groupsForUser(user)
 			groups.foreach(group => deleteUserFromGroup(group,user))
+			//1 Get the shares for this group
+			//2 Per share: see if the user has access 
+			//YES: delete share/permissions
+			//NO: do nothing
 		}
 		
 		def userInGroup(group:String,user:String): Boolean = {

@@ -47,6 +47,7 @@ package net.vrijheid.clouddrive.sharing {
 		val store_client = VMTalk.getStorageClient
 		val share_client = VMTalk.getShareClient
 		val groupshare_client = VMTalk.getGroups2SharesClient
+		sharer = this
 		
 		def setShared(path: String,sharedornot: Boolean) {
 			setMetaData(path,Map("shared" -> sharedornot.toString()))
@@ -244,6 +245,8 @@ package net.vrijheid.clouddrive.sharing {
 		def addFolderToSharedFolder(newone: String){
 			
 			//CODE_CC: how to deal with copying of data across back ends?
+			//Add smartCopy
+			//Add folder and fileto groupshare_client
 			
 			//adds generic logic for adding a subfolder to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
@@ -326,7 +329,7 @@ package net.vrijheid.clouddrive.sharing {
 			//adds generic logic for adding a file to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
 			//Logic:
-			//Get the shared toplevel from the folder
+			//Get the shared parent source from the folder
 			val parent_prefix = stripTrailingSlash("/"+ctx.user+getParentFolder(newone))
 			val parent_source = followLink(parent_prefix)
 			//Translate it to the shared "source folder". Continue only upon success
@@ -341,12 +344,12 @@ package net.vrijheid.clouddrive.sharing {
 					val source_parent_acl = getACL(parent_source)
 					//Get all the linked share users for this folder, so we now how to propagate
 					var other_linked_parents = getLinkedShares(parent_source)
-					val linked_groups = List()
+					val linked_groups = getLinkedGroups(parent_source)
 					//Now we first copy the file to the owner of the share, and remove it from "this" user
 					//I.e. if a party invited to the share, shares a file it gets copied to the owner of the share and then "shared back"
 					//DELETE-IF-TRUE val relative_path = newone drop(parent_prefix length)
 					//DELETE-IF-TRUE val new_owner = parent_source+"/"+relative_path
-					val new_owner = parent_share
+					var new_owner = parent_share
 					
 					if(new_owner != newone){
 						//We copy the resource data to the new owner (the "master" owner of the share). But only if it is not the master sharer to begin with
@@ -376,21 +379,29 @@ package net.vrijheid.clouddrive.sharing {
 								setACL(new_link,source_parent_acl)
 								//Set the reverse share
 								share_client applyDelta(new_owner,new_link,update_reverse_share)
+								//Add to all groups as share
+								linked_groups foreach {
+									(group) => {
+										groupshare_client applyDelta(group,new_owner,update_reverse_share)
+									}
+								}
 							}
 							
 							//It's a resource, link to it
 							case false => {
 								createLink(new_owner,new_link,source_parent_acl)
 								share_client applyDelta(new_owner,new_link,update_reverse_share)
+								//Add to all groups as share
+								linked_groups foreach {
+									(group) => {
+										groupshare_client applyDelta(group,new_owner,update_reverse_share)
+									}
+								}
 							}
 						}
 					}}
 					
-					linked_groups foreach {
-						(group) => {
-							
-						}
-					}									
+									
 				}
 				
 				case false => {
@@ -406,6 +417,10 @@ package net.vrijheid.clouddrive.sharing {
 		the folder is a full path that is stripped from all prepending stuff as well and can be used to share under a different name
 		ACL*/
 		def addSharedFolder(source: String,folder: String,ACL:Map[_ <: ACLContainer,List[String]]) {			
+			
+			//CODE_CC
+			//Add smartCopy
+			//Add folder and fileto groupshare_client
 			
 			//Use the same updater for removeSharedFolder, but then reversed. 		
 			//source is the complete path, with user prefix etc.
@@ -429,6 +444,8 @@ package net.vrijheid.clouddrive.sharing {
 					val relative_path = stripTrailingSlash(stripLeadingSlash(item drop (source_from_user length)))
 					val now = idateNow()
 					
+					//The combined_acls are not used as ACL, but are exploed to all users member of a group
+					//That way, we see who needs to get access
 					combined_acls.keys.foreach( { (key) => {
 						key match {
 							//Note: ACLSuperSet explosed to ACLUser -> maybe this clause is redundant.
@@ -540,7 +557,7 @@ package net.vrijheid.clouddrive.sharing {
 										case true => createCollection(target_path)
 										case false => createLink(source_from_user + "/" + relative_path,target_path,ACL)
 									}
-									//Maybe we want to cache one day,  we can always comment this out to prevent an extra write to the metadata store
+									//Maybe we want to cache one day, we can always comment this out to prevent an extra write to the metadata store
 									setACL(target_path,ACL)	
 									debug("After setACL for " + target_path + " getACL now is "+ getACL(target_path))
 									updateMetaData(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,Map(davEncode("resourcetype") -> ("<" + dav_namespace_abbrev + ":collection/>"),davEncode("creationdate") -> isoDateNow(), davEncode("getlastmodified") -> now))
@@ -551,7 +568,6 @@ package net.vrijheid.clouddrive.sharing {
 									//This changes so we can find it quickly when a user is removed (backward link).Map the target_path (which is user specific for the receiving party) reversed to the orginal path to the data, i.e prefix + folder + relative_path
 									share_client applyDelta(prefix + stripTrailingSlash(stripLeadingSlash(folder)) + "/" + relative_path,target_path,update_reverse_share)							
 								}
-																	
 							}
 						}
 					}}
@@ -567,8 +583,11 @@ package net.vrijheid.clouddrive.sharing {
 		
 		
 		def removeFolderFromSharedFolder(removee: String) {
+			
+			//CODE_CC
+			//remove folder and file from groupshare_client
+			
 			//Generic logic to remove a folder from a shared folder, also for a "sharee"
-
 			
 			//Get the parents etc so we can remove it
 			val parent_prefix = stripTrailingSlash("/"+ctx.user+getParentFolder(removee))
@@ -599,6 +618,10 @@ package net.vrijheid.clouddrive.sharing {
 		}
 		
 		def removeFileFromSharedFolder(removee: String){
+			
+			//CODE_CC
+			//remove folder and file from groupshare_client
+			
 			//Generic logic to remove a file from a shared folder, also for a "sharee"
 			
 			//Get the parents etc so we can remove it
@@ -761,6 +784,21 @@ package net.vrijheid.clouddrive.sharing {
 			//Propgate this call back in addTo... functions
 
 		}
+		def generateLinkForShare(sourcepath: String,targetuser: String): String = {
+			
+			share_client getValue_?(sourcepath) match {
+				
+				case Some(targets) if targets.length > 0  => {
+					//Generate a relative path from one of the targets, without the shared toplevel and user in the path
+					val relative_target = dropUserIndexFromPath(dropTopLevelPath(targets(0)),getUserNameFromPath(targets(0)))
+					//Transpose it to the new user and his root share
+					stripTrailingSlash("/" + targetuser + "/" + stripLeadingSlash(relative_target))
+				}
+				
+				case _ => throw new NoSuchShareException
+			}
+			""
+		} 
 		
 		
 		//TBD: also add this for subfolders using addToSharedFolder/removeFromSharedFolder
