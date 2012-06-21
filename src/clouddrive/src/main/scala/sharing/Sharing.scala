@@ -45,6 +45,9 @@ package net.vrijheid.clouddrive.sharing {
 		def getTopLevelShare_?(path:String):Boolean 
 		def getSharedAs(source:String):String
 		def isShared_?(source:String):Boolean		
+
+		def getLinkedShares(inpath: String):List[String]
+		def getLinkedGroups(inpath: String):List[String]
 		
 		def sharedNameExists(name: String): Boolean 
 		
@@ -93,6 +96,9 @@ package net.vrijheid.clouddrive.sharing {
 		def isShared_?(source:String):Boolean = {delegate isShared_? (source)}
 		def sharedNameExists(name: String): Boolean = {false}
 		def ACLSuperSet(incoming: Map[ _ <: ACLContainer,List[String]]):Map[ _ <: ACLContainer,List[String]] = {delegate.ACLSuperSet(incoming)}
+		
+		def getLinkedShares(inpath: String):List[String] = {delegate getLinkedShares(inpath)}
+		def getLinkedGroups(inpath: String):List[String] = {delegate getLinkedGroups(inpath)}
 		
 		def isEmptySharedFolder(path: String): Boolean  = {delegate.isEmptySharedFolder(path)};
 		

@@ -46,6 +46,7 @@ package net.vrijheid.clouddrive.sharing {
 		//Also get the shares client and the storage client
 		val store_client = VMTalk.getStorageClient
 		val share_client = VMTalk.getShareClient
+		val groupshare_client = VMTalk.getGroups2SharesClient
 		
 		def setShared(path: String,sharedornot: Boolean) {
 			setMetaData(path,Map("shared" -> sharedornot.toString()))
@@ -206,7 +207,7 @@ package net.vrijheid.clouddrive.sharing {
 		}
 				
 		//Returns THE list of shared files and links. Both the source and other links.
-		private def getLinkedShares(inpath: String):List[String] = {
+		def getLinkedShares(inpath: String):List[String] = {
 			
 			//If the inpath == source, do a direct lookup on the reverse index
 			//Otherwise, do a getSourceFromSharedTarget and perform the lookup on that
@@ -220,7 +221,23 @@ package net.vrijheid.clouddrive.sharing {
 			}
 		}
 		
-				
+		//Returns THE list of shared files and links. Both the source and other links.
+		def getLinkedGroups(inpath: String):List[String] = {
+			
+			//If the inpath == source, do a direct lookup on the reverse index
+			//Otherwise, do a getSourceFromSharedTarget and perform the lookup on that
+			val source = followLink(inpath)
+			if (source == inpath) {List(inpath)}
+			else {
+				groupshare_client getValue_?(inpath) match {
+					case Some(groups) => {
+						groups 
+					}
+					
+					case None => List()
+				}
+			}
+		}				
 		//CODE_CC: add/remove need to check on allowedAccess as well!
 		
 		//add addToSharedFolder and propagate "upwards" to all of the interfaces?
@@ -304,7 +321,7 @@ package net.vrijheid.clouddrive.sharing {
 		
 		def addFileToSharedFolder(newone: String){	
 			
-			//CODE_CC: use smartCopy to deal with copying of data across back ends. Propagate to other add* methods
+			//This uses smartCopy to deal with copying of data across back ends. See also other add* methods
 			
 			//adds generic logic for adding a file to an already shared parent folder, also from a "sharee" perspective and propgate the changes to other users
 			
@@ -324,19 +341,21 @@ package net.vrijheid.clouddrive.sharing {
 					val source_parent_acl = getACL(parent_source)
 					//Get all the linked share users for this folder, so we now how to propagate
 					var other_linked_parents = getLinkedShares(parent_source)
-					//Now we first copy all the content to the owner of the share, and remove it from "this" user
-					//I.e. if a party invited to the srae, shares a folder it gets copied to the owner of the share and then "shared back"
-
-					val relative_path = newone drop(parent_prefix length)
-					val new_owner = parent_source+"/"+relative_path
+					val linked_groups = List()
+					//Now we first copy the file to the owner of the share, and remove it from "this" user
+					//I.e. if a party invited to the share, shares a file it gets copied to the owner of the share and then "shared back"
+					//DELETE-IF-TRUE val relative_path = newone drop(parent_prefix length)
+					//DELETE-IF-TRUE val new_owner = parent_source+"/"+relative_path
+					val new_owner = parent_share
 					
 					if(new_owner != newone){
 						//We copy the resource data to the new owner (the "master" owner of the share). But only if it is not the master sharer to begin with
-						copyResourceData(newone,new_owner)
+						//DELETE-IF-TRUE copyResourceData(newone,new_owner)
+						smartCopy(newone,new_owner)
 						//Then we delete it if necessary. Effectively we changed "master owner" of the data by moving the metadata pointers
 						delete(newone)
 						//This line protects the original source and makes sure it gets a link back for the file (resource)
-						other_linked_parents = newone :: other_linked_parents
+						other_linked_parents = (newone :: other_linked_parents).distinct
 					}
 					
 					//Get the parent's linked shares 
@@ -346,25 +365,32 @@ package net.vrijheid.clouddrive.sharing {
 					other_linked_parents.foreach { 
 						(parent) => {
 						
-						val new_link = parent+"/"+relative_path
+						val new_link = parent+"/"+new_file_name
 						
 						isCollection(new_owner) match {
 							
-							//It's a collection, create it
+							//It's a collection, create it. Moer kind of resilience then correct if we end up here
 							case true => {
 								createCollection(new_link)
 								updateMetaData(new_link,getMetaData(new_owner))
 								setACL(new_link,source_parent_acl)
+								//Set the reverse share
 								share_client applyDelta(new_owner,new_link,update_reverse_share)
 							}
 							
-							//It's a (nested) resource, link to it
+							//It's a resource, link to it
 							case false => {
 								createLink(new_owner,new_link,source_parent_acl)
 								share_client applyDelta(new_owner,new_link,update_reverse_share)
 							}
 						}
-					}}									
+					}}
+					
+					linked_groups foreach {
+						(group) => {
+							
+						}
+					}									
 				}
 				
 				case false => {
@@ -665,7 +691,6 @@ package net.vrijheid.clouddrive.sharing {
 		//This copies data to a Share(d folder)
 		def smartCopy(source: String,destination_share: String) {
 
-			//CODE_CC
 			//First check if it is all within one user space. In which case we can copy within the same backend
 			//Create an extra context and config, plus an extra storage layer based on a key (see the mkStorage signature)
 			//Open both storage layers
@@ -694,7 +719,6 @@ package net.vrijheid.clouddrive.sharing {
 			//Check: if the store types are the same, copy from the src store, get the guid and set the metadata. Most common case
 			(source_storage_type == destination_storage_type) match {
 				
-				//TBD: add metadata copy/... below? Including new friends get/setBackend??
 				
 				//Yep, "fast" copy
 				case true => {
@@ -702,6 +726,7 @@ package net.vrijheid.clouddrive.sharing {
 					//Copy the data using the same backend
 					source_context.store open 'read
 					val newguid = source_context.store copy()
+					// metadata copy/... below? Including new friends get/setBackend
 					createResource(destination_share)
 					copyResourceData(source,destination_share)
 					setBackend(destination_share,destination_storage_type)
