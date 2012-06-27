@@ -278,15 +278,6 @@ package net.vrijheid.clouddrive.sharing {
 			//YES: delete share/permissions
 			//NO: do nothing
 			
-			/** In detail
-			Get the shares for this group from groups_share_client
-			For each share: 
-			- get the reverse share from me_share_client
-			- fetch the link for this user
-			- remove the link in this users's shared... space
-			- remove the link from the reverse index in me_share_client
-			
-			*/
 			
 			if(userInGroup(group,user)) {
 
@@ -296,6 +287,15 @@ package net.vrijheid.clouddrive.sharing {
 				//Delete the group from the user
 				u2gclient.applyDelta(user,group,updater2)
 				
+				/** In detail
+				Get the shares for this group from groups_share_client
+				For each share: 
+				- get the reverse share from me_share_client
+				- fetch the link for this user
+				- remove the link in this users's shared... space
+				- remove the link from the reverse index in me_share_client
+
+				*/
 			}
 		}
 		
