@@ -73,6 +73,7 @@ package net.vrijheid.clouddrive.sharing {
 		def smartCopy(source: String,destination_share: String)
 		def generateLinkForShare(sourcepath: String,targetuser: String): String  
 		
+		def setACLOnSharedFolder(source: String,newACL: Map[ACLContainer,List[String]])
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer])
 		def changeACLOnSharedFolder(source: String,gone: ACLContainer)
 		
@@ -120,6 +121,8 @@ package net.vrijheid.clouddrive.sharing {
 		def smartCopy(source: String,destination_share: String) {delegate.smartCopy(source,destination_share)}
 		def generateLinkForShare(sourcepath: String,targetuser: String): String = {delegate generateLinkForShare(sourcepath,targetuser)}
 		
+		
+		def setACLOnSharedFolder(source: String,newACL: Map[ACLContainer,List[String]]) = {delegate.setACLOnSharedFolder(source,newACL)}
 		def changeACLOnSharedFolder(source: String,gone: List[ACLContainer]) {delegate.changeACLOnSharedFolder(source,gone)}
 		def changeACLOnSharedFolder(source: String,gone: ACLContainer) {delegate.changeACLOnSharedFolder(source,gone)}
 				
