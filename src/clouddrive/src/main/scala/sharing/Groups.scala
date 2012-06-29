@@ -83,6 +83,7 @@ package net.vrijheid.clouddrive.sharing {
 		val guest_client = VMTalk.getGuestClient
 		val groups_share_client = VMTalk.getGroups2SharesClient
 		val me_share_client = VMTalk.getShareClient
+		val storage_client = VMTalk.getStorageClient
 		
 		var sharer: SharingLike = _
 
@@ -97,6 +98,9 @@ package net.vrijheid.clouddrive.sharing {
 				(group_shares filterNot (List(delta).contains))
 			}
 		}
+		
+		//Same logic, remove one entry (delta) from a list (group_shares)
+		private val delete_share_entry = delete_group_share
 		
 		def getUsers(group: String):List[String] = {
 			if(groupExists(group)) {g2uclient.getValue(group)}
@@ -169,13 +173,10 @@ package net.vrijheid.clouddrive.sharing {
 			val members = g2uclient getValue group;
 			//Remove this group for these users from their groups list
 			//This also removes the groups from the users list via deleteUserFromGroup
+			//And.. deleteUserFromGroup will take care of cleaning up the links to files
 			members.foreach(member => deleteUserFromGroup(group,member))
 			//Now, delete the group (effectively empty)
-			g2uclient delete group;	
-			//1 Get the shares for this group's users
-			//2 Per share: see if a user has access (loop over users)
-			//YES: delete share/permissions
-			//NO: do nothing		
+			g2uclient delete group;			
 		}
 
 		def addGuestUser(user: String,config: Map[String,String]) {
@@ -277,7 +278,10 @@ package net.vrijheid.clouddrive.sharing {
 			//2 Per share: see if a user has access (loop over users)
 			//YES: delete share/permissions
 			//NO: do nothing
-			
+			val shares = groups_share_client getValue_? (group) match {
+				case Some(shares) => shares
+				case None => List()
+			}
 			
 			if(userInGroup(group,user)) {
 
@@ -287,15 +291,30 @@ package net.vrijheid.clouddrive.sharing {
 				//Delete the group from the user
 				u2gclient.applyDelta(user,group,updater2)
 				
-				/** In detail
-				Get the shares for this group from groups_share_client
-				For each share: 
-				- get the reverse share from me_share_client
-				- fetch the link for this user
-				- remove the link in this users's shared... space
-				- remove the link from the reverse index in me_share_client
+				// In detail
+				//Get the shares for this group from groups_share_client
+				//For each share: 
+				//- get the reverse share from me_share_client
+				shares.foreach({
+					(current_share) => {
+						val reverse_share = me_share_client getValue_?(current_share) match {
+							
+							case Some(shares) => {
+								//- fetch the link for this user
+								val theshare = shares.filter(_.startsWith("/"+user)).head
+								//- remove the link in this users's shared... space
+								storage_client delete(theshare)
+								//- remove the link from the reverse index in me_share_client								
+								me_share_client applyDelta(current_share,theshare,delete_share_entry)
+							}
+							
+							case None => {}
+						}
+						
+					}
+				})
 
-				*/
+
 			}
 		}
 		
