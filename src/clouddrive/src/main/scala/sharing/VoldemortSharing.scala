@@ -228,27 +228,14 @@ package net.vrijheid.clouddrive.sharing {
 		def getLinkedGroups(inpath: String):List[String] = {
 			
 			throw new Exception("DEAD IN ITS TRACKS FOR NOW")
-			/**
-			
-			ERROR: the groupshare_client maps a group to the list of shares it has
-			The logic below assumes that the index works in reverse
-			i.e. has the path as key. This is why it fails hooribly
-			
-			*/
-			
 			//If the inpath == source, do a direct lookup on the reverse index
 			val source = followLink(inpath)
-			//if (source == inpath) {List(inpath)}
-			//else {
-				//groupshare_client getValue_?(inpath) match {				
-				groupshare_client getValue_?(source) match {
-					case Some(groups) => {
-						groups 
-					}
-					
-					case None => List()
-				}
-			//}
+			//get the acl to deduce the groups
+			val acl = getACL(source)
+			//Get the ACLGroup objects
+			//Return as a list of group names
+			(acl.filter(_.isInstanceOf[ACLGroup])map{(x) => {x.asInstanceOf[ACLGroup].name}}).toList
+			
 		}				
 		//CODE_CC: add/remove need to check on allowedAccess as well!
 		
