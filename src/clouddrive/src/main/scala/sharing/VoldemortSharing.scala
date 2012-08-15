@@ -213,7 +213,6 @@ package net.vrijheid.clouddrive.sharing {
 		def getLinkedShares(inpath: String):List[String] = {
 			
 			//If the inpath == source, do a direct lookup on the reverse index
-			//Otherwise, do a getSourceFromSharedTarget and perform the lookup on that
 			val source = followLink(inpath)
 			if (source == inpath) {List(inpath)}
 			else {
@@ -225,21 +224,31 @@ package net.vrijheid.clouddrive.sharing {
 		}
 		
 		//Returns THE list of shared files and links. Both the source and other links.
+		//DEBUG-CC
 		def getLinkedGroups(inpath: String):List[String] = {
 			
+			throw new Exception("DEAD IN ITS TRACKS FOR NOW")
+			/**
+			
+			ERROR: the groupshare_client maps a group to the list of shares it has
+			The logic below assumes that the index works in reverse
+			i.e. has the path as key. This is why it fails hooribly
+			
+			*/
+			
 			//If the inpath == source, do a direct lookup on the reverse index
-			//Otherwise, do a getSourceFromSharedTarget and perform the lookup on that
 			val source = followLink(inpath)
-			if (source == inpath) {List(inpath)}
-			else {
-				groupshare_client getValue_?(inpath) match {
+			//if (source == inpath) {List(inpath)}
+			//else {
+				//groupshare_client getValue_?(inpath) match {				
+				groupshare_client getValue_?(source) match {
 					case Some(groups) => {
 						groups 
 					}
 					
 					case None => List()
 				}
-			}
+			//}
 		}				
 		//CODE_CC: add/remove need to check on allowedAccess as well!
 		
@@ -319,7 +328,8 @@ package net.vrijheid.clouddrive.sharing {
 											(group) => {
 												groupshare_client applyDelta(group,new_owner,update_reverse_share)
 											}
-										}									}
+										}									
+										}
 								}
 							}
 						}
