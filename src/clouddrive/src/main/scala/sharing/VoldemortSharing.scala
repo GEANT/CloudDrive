@@ -171,7 +171,9 @@ package net.vrijheid.clouddrive.sharing {
 		//This indicates that the actual resource is shared (i.e. is a link to another resource). We see this by looking at the user namespace it resides
 		def sharedResource(path: String):Boolean = {
 			val user = getUserNameFromPath(path)
-			if (!(ctx.user == user) && exists("/" + user)) { true }
+			if (!(ctx.user == user) && exists("/" + user)) { 
+				getShared(followLink(path))
+			}
 			else {false}
 		}
 		
