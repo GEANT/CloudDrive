@@ -8,3 +8,4 @@ src/clouddrive/project/plugins/src_managed/
 *.iml
 src/web_clouddrive/lib_managed/
 src/web_clouddrive/project/boot/
+*-sources.jar
