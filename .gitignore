@@ -6,3 +6,5 @@ src/clouddrive/project/plugins/lib_managed/
 src/clouddrive/project/plugins/src_managed/
 .idea/
 *.iml
+src/web_clouddrive/lib_managed/
+src/web_clouddrive/project/boot/
