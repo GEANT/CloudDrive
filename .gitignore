@@ -4,3 +4,5 @@ nohup.out
 src/clouddrive/project/boot/
 src/clouddrive/project/plugins/lib_managed/
 src/clouddrive/project/plugins/src_managed/
+.idea/
+*.iml
