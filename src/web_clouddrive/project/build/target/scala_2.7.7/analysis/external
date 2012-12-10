@@ -1,6 +1,0 @@
-#External Dependencies
-#Thu May 31 16:40:11 CEST 2012
-/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar=LiftProject.scala
-/Users/maarten/repos/CloudDrive/src/web_clouddrive/project/boot/scala-2.7.7/org.scala-tools.sbt/sbt/0.7.7/ivy_2.7.7-0.7.7.jar=LiftProject.scala
-/Users/maarten/repos/CloudDrive/src/web_clouddrive/project/boot/scala-2.7.7/org.scala-tools.sbt/sbt/0.7.7/sbt_2.7.7-0.7.7.jar=LiftProject.scala
-/Users/maarten/repos/CloudDrive/src/web_clouddrive/project/boot/scala-2.7.7/lib/scala-library.jar=LiftProject.scala
