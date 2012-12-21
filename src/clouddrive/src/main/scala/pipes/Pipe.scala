@@ -40,7 +40,9 @@ import java.io.{Serializable}
 
 package net.vrijheid.clouddrive.pipes {
 
-	//
+import providers.pithosplus.PithosPlusFileSystem
+
+//
 	//combine PipeItems and manage execution
 	class Pipe[T] (source : PipeSource,sink : PipeSink)(implicit ctx : RootContext[T]) extends Treatise  with Serializable {
 				
@@ -182,6 +184,7 @@ package net.vrijheid.clouddrive.pipes {
 				
 				case "filesystem" => {new FileSystemStore(key) }
 				case "s3" => {new AWSFileSystem(key) }
+        case "pithosplus" => new PithosPlusFileSystem(key)
 				case _ => {new FileSystemStore(key)}
 			}
 			
