@@ -184,7 +184,8 @@ import providers.pithosplus.PithosPlusFileSystem
 				
 				case "filesystem" => {new FileSystemStore(key) }
 				case "s3" => {new AWSFileSystem(key) }
-        case "pithosplus" => new PithosPlusFileSystem(key)
+				case "pithosplus" => {new PithosPlusFileSystem(key)}
+				case "swift" => {new SwiftFileSystem(key)}
 				case _ => {new FileSystemStore(key)}
 			}
 			
