@@ -128,11 +128,13 @@ package net.vrijheid.clouddrive.config {
 		}		
 
 		def loadConfig(filename : String) = synchronized {
-		
+      val file = new File(filename)
+      val absfilename = file.getCanonicalPath
+
 			try 
 			{
 				//OPEN the property file
-				val file_is = new FileInputStream(new File(filename))  
+        val file_is = new FileInputStream(file)
 				//make property list and load values from file
 				val proplist = new Properties()
 				proplist load file_is
@@ -146,7 +148,7 @@ package net.vrijheid.clouddrive.config {
 				case e: Exception  => {
 					if(filename != "/etc/rightfabric/config.txt") {
 						//e.printStackTrace()
-						Console println("Config loading failed. Now trying to load from /etc/rightfabric")
+						Console println("Config loading ("+absfilename+") failed. Now trying to load from /etc/rightfabric")
 						throw new Exception
 					}
 					else {
