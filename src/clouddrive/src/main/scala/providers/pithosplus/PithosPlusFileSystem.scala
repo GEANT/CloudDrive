@@ -1,8 +1,9 @@
 package providers.pithosplus
 
 import net.vrijheid.clouddrive.control.{Storage, RootContext}
+import net.vrijheid.clouddrive.httpsupport.MKCOL
 import net.vrijheid.clouddrive.sharing.Sharing
-import java.io.{FileOutputStream, OutputStream, InputStream, File}
+import java.io.{FileInputStream, FileOutputStream, OutputStream, InputStream, File}
 import org.slf4j.LoggerFactory
 import gr.grnet.pithosj.core.ConnectionInfo
 
@@ -39,12 +40,38 @@ object PithosPlusFileSystem {
   /**
    * The default Pithos+ container used to store files if nothing else has been specifically configured.
    */
-  final val DefaultContainer = "pithos"
+  final val DefaultContainer = "terena"
+
+  /**
+   * Same role as `buffersize` in [[net.vrijheid.clouddrive.providers.aws.AWSFileSystem]].
+   */
+  final val ReadBufferSize = 1024 * 4
+
+  final val EmptyByteArray = new Array[Byte](0)
 
   final val ReadMode = 'read
   final val WriteMode = 'write
+
+  object Helpers {
+    def isCollectionVerb(ctx: RootContext[_]): Boolean = {
+      ctx.verb match {
+        case verb: MKCOL => true
+        case _ => false
+      }
+    }
+  }
 }
 
+/**
+ * Implements Pithos+ as a storage provider for CloudDrive.
+ * The implementation is loosely modelled after [[net.vrijheid.clouddrive.providers.aws.AWSFileSystem]]
+ * and [[net.vrijheid.clouddrive.providers.filesystem.FileSystemStore]], which are state machines in
+ * disguise.
+ *
+ * @param filepath
+ * @param ctx
+ * @tparam T
+ */
 class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) extends Sharing[T] with Storage {
   import PithosPlusFileSystem._
 
@@ -105,21 +132,46 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   // This var is needed because close() has no idea of the mode of the previous open()
   private var _prevOpenMode: Symbol = 'ihavenoidea
   private var _tmp_outFile_for_read: File = _
-  private var _tmp_outStream_for_read: OutputStream = _
 
+  // Same purpose as cleanup_on_write in AWSFileSystem
+  private var _close_post_processor: () => Unit = _
+  private def doClosePostProcessing() {
+    if(_close_post_processor ne null) {
+      _close_post_processor.apply()
+      _close_post_processor = null
+    }
+  }
+
+  /**
+   * Downloads the file from Pithos+ and sets the local input stream accordingly.
+   */
   private def doReadOpen() {
     _tmp_outFile_for_read = File.createTempFile(Integer.toHexString(System.identityHashCode(this)), ".pj")
-    _tmp_outStream_for_read = new FileOutputStream(_tmp_outFile_for_read)
-    val future = client.getObject(connInfo, container, resolvedFilePath, null, _tmp_outStream_for_read)
-    future.get()
+    logger.debug("Created empty %s for %s".format(_tmp_outFile_for_read.getAbsolutePath, resolvedFilePath))
+    _close_post_processor = () => {
+      _tmp_outFile_for_read.delete()
+      logger.debug("Deleted %s for %s".format(_tmp_outFile_for_read.getAbsolutePath, resolvedFilePath))
+    }
+
+    val tmpOutputStream = new FileOutputStream(_tmp_outFile_for_read)
+    val future = client.getObject(connInfo, container, resolvedFilePath, null, tmpOutputStream)
+    try future.get()
+    finally {
+      tmpOutputStream.close()
+      input = new FileInputStream(_tmp_outFile_for_read)
+    }
   }
 
   private def doWriteOpen() {
+    if(exists(resolvedFilePath)) {
 
+    } else {
+
+    }
   }
 
   def open(mode: Symbol) = {
-    logger.debug("==> open(%s)".format(mode))
+    logger.debug("open(%s)".format(mode))
     this._prevOpenMode = mode
 
     mode match {
@@ -137,9 +189,14 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   private def doReadClose() {
+    input.close()
+    doClosePostProcessing()
   }
 
   private def doWriteClose() {
+    output.flush()
+    output.close()
+    doClosePostProcessing()
   }
 
   def close() {
@@ -155,13 +212,33 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
     }
   }
 
-  def read() = {
-    logger.debug("read()")
-    null
+  def read(): Array[Byte] = {
+    if(input ne null) {
+      val buffer = new Array[Byte](ReadBufferSize)
+
+      input.read(buffer) match {
+        case -1 =>
+          logger.debug("read() = -1")
+          EmptyByteArray
+
+        case n =>
+          logger.debug("read() = %s".format(n))
+          buffer.slice(0, n)
+      }
+    }
+    else {
+      logger.debug("read() = <no input>")
+      EmptyByteArray
+    }
   }
 
   def write(data: Array[Byte]) {
-    logger.debug("write()")
+    val description = if(data eq null) "<null>" else "length=%s".format(data.length.toString)
+    logger.debug("write(%s)".format(description))
+
+    if((null ne output) && (null ne data)) {
+      output.write(data)
+    }
   }
 
   def copy() = {
@@ -170,8 +247,9 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   def getMetaData() = {
-    logger.debug("getMetaData()")
-    null
+    val result = getMetaData(resolvedFilePath)
+    logger.debug("getMetaData()=%s".format(result))
+    result
   }
 
   def transfer() {
@@ -183,16 +261,25 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   def setMetaData(metadata: Map[String, String]) {
+    setMetaData(resolvedFilePath, metadata)
     logger.debug("setMetaData(%s)".format(metadata))
   }
 
   def hasChildren() = {
-    logger.debug("hasChildren()")
-    false
+    val result = hasChildren(resolvedFilePath)
+    logger.debug("hasChildren() = %s", result)
+    result
   }
 
   def create() = {
-    logger.debug("create()")
+    if(Helpers.isCollectionVerb(ctx)) {
+      logger.debug("Create collection %s".format(resolvedFilePath))
+      createCollection(resolvedFilePath)
+    }
+    else {
+      logger.debug("Create file %s".format(resolvedFilePath))
+      createResource(resolvedFilePath)
+    }
     false
   }
 
@@ -205,16 +292,20 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   def exists() = {
-    logger.debug("exists()")
-    false
+    val result = exists(resolvedFilePath)
+    logger.debug("exists() = %s".format(result))
+    result
   }
 
   def isCollection() = {
-    logger.debug("isCollection()")
-    false
+    val result = isCollection(resolvedFilePath)
+    logger.debug("isCollection() = %s".format(result))
+    result
   }
 
   def getOriginalName() = {
+    // FIXME: the full path in Pithos+
+    // FIXME: What is the relation of this full path with the resolvedFilePath?
     logger.debug("getOriginalName()")
     null
   }
