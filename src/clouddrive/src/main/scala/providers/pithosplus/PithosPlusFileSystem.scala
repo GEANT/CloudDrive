@@ -62,6 +62,17 @@ object PithosPlusFileSystem {
   }
 }
 
+// TODO: Remove this when the implementation is done.
+// This is just an aid in debugging.
+object FSSCounter {
+  @volatile private var _counter = 0
+
+  def nextValue = {
+    _counter += 1
+    _counter
+  }
+}
+
 /**
  * Implements Pithos+ as a storage provider for CloudDrive.
  * The implementation is loosely modelled after [[net.vrijheid.clouddrive.providers.aws.AWSFileSystem]]
@@ -76,6 +87,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   import PithosPlusFileSystem._
 
   private[this] val logger = LoggerFactory.getLogger(this.getClass)
+  logger.debug("### %s #############################".format(FSSCounter.nextValue))
 
   logger.debug("filepath = %s".format(filepath))
 
@@ -131,7 +143,10 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   // This var is needed because close() has no idea of the mode of the previous open()
   private var _prevOpenMode: Symbol = 'ihavenoidea
-  private var _tmp_outFile_for_read: File = _
+  private var _tmpReadFile: File = _
+  private var _tmpWriteFile: File = _
+  // I need this since I detected that close() is called multiple times (actually two)
+  private var _isClosed = false
 
   // Same purpose as cleanup_on_write in AWSFileSystem
   private var _close_post_processor: () => Unit = _
@@ -146,25 +161,28 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
    * Downloads the file from Pithos+ and sets the local input stream accordingly.
    */
   private def doReadOpen() {
-    _tmp_outFile_for_read = File.createTempFile(Integer.toHexString(System.identityHashCode(this)), ".pj")
-    logger.debug("Created empty %s for %s".format(_tmp_outFile_for_read.getAbsolutePath, resolvedFilePath))
+    _tmpReadFile = File.createTempFile(Integer.toHexString(System.identityHashCode(this)), ".pj")
+    logger.debug("Created empty %s for %s".format(_tmpReadFile.getAbsolutePath, resolvedFilePath))
     _close_post_processor = () => {
-      _tmp_outFile_for_read.delete()
-      logger.debug("Deleted %s for %s".format(_tmp_outFile_for_read.getAbsolutePath, resolvedFilePath))
+      _tmpReadFile.delete()
+      logger.debug("Deleted %s for %s".format(_tmpReadFile.getAbsolutePath, resolvedFilePath))
     }
 
-    val tmpOutputStream = new FileOutputStream(_tmp_outFile_for_read)
+    val tmpOutputStream = new FileOutputStream(_tmpReadFile)
     val future = client.getObject(connInfo, container, resolvedFilePath, null, tmpOutputStream)
-    try future.get()
+    try {
+      future.get()
+      input = new FileInputStream(_tmpReadFile)
+    }
     finally {
       tmpOutputStream.close()
-      input = new FileInputStream(_tmp_outFile_for_read)
     }
   }
 
   private def doWriteOpen() {
     if(exists(resolvedFilePath)) {
-
+      setOriginal(resolvedFilePath, resolvedFilePath)
+      create()
     } else {
 
     }
@@ -174,7 +192,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
     logger.debug("open(%s)".format(mode))
     this._prevOpenMode = mode
 
-    mode match {
+    val result = mode match {
       case ReadMode =>
         doReadOpen()
         true
@@ -186,6 +204,9 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
       case _ =>
         false
     }
+
+    _isClosed = false
+    result
   }
 
   private def doReadClose() {
@@ -200,15 +221,24 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   def close() {
-    logger.debug("close()")
-    this._prevOpenMode match {
-      case ReadMode =>
-        doReadClose()
+    logger.debug("close() [_isClosed=%s]".format(_isClosed))
+    if(_isClosed) {
+      return
+    }
 
-      case WriteMode =>
-        doWriteClose()
+    try {
+      this._prevOpenMode match {
+        case ReadMode =>
+          doReadClose()
 
-      case _ =>
+        case WriteMode =>
+          doWriteClose()
+
+        case _ =>
+      }
+    }
+    finally {
+      _isClosed = true
     }
   }
 
@@ -218,16 +248,16 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
       input.read(buffer) match {
         case -1 =>
-          logger.debug("read() = -1")
+          logger.debug("read() => [length=-1]")
           EmptyByteArray
 
         case n =>
-          logger.debug("read() = %s".format(n))
+          logger.debug("read() => [length=%s]".format(n))
           buffer.slice(0, n)
       }
     }
     else {
-      logger.debug("read() = <no input>")
+      logger.debug("read() [<no input>] => EmptyByteArray")
       EmptyByteArray
     }
   }
@@ -248,7 +278,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def getMetaData() = {
     val result = getMetaData(resolvedFilePath)
-    logger.debug("getMetaData()=%s".format(result))
+    logger.debug("getMetaData() => %s".format(result))
     result
   }
 
@@ -267,10 +297,11 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def hasChildren() = {
     val result = hasChildren(resolvedFilePath)
-    logger.debug("hasChildren() = %s", result)
+    logger.debug("hasChildren() => %s", result)
     result
   }
 
+  // This seems to be used for open('write)
   def create() = {
     if(Helpers.isCollectionVerb(ctx)) {
       logger.debug("Create collection %s".format(resolvedFilePath))
@@ -293,7 +324,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def exists() = {
     val result = exists(resolvedFilePath)
-    logger.debug("exists() = %s".format(result))
+    logger.debug("exists() => %s".format(result))
     result
   }
 
@@ -306,7 +337,8 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   def getOriginalName() = {
     // FIXME: the full path in Pithos+
     // FIXME: What is the relation of this full path with the resolvedFilePath?
-    logger.debug("getOriginalName()")
-    null
+    val original = getOriginal(resolvedFilePath)
+    logger.debug("getOriginalName() => %s".format(original))
+    original
   }
 }
