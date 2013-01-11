@@ -38,11 +38,11 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info)   {
   val mysql = "mysql" % "mysql-connector-java" % "5.1.12"
 
   override def libraryDependencies = Set(
-    "net.liftweb" %% "lift-webkit" % liftVersion.value.toString % "compile",
-    "net.liftweb" %% "lift-mapper" % liftVersion.value.toString % "compile",
-	"net.liftweb" %% "lift-wizard" % liftVersion.value.toString % "compile",
-	"net.liftweb" %% "lift-widgets" % liftVersion.value.toString % "compile",
-	"org.mortbay.jetty" % "jetty" % "6.1.22" % "compile,test"
+    "net.liftweb" %% "lift-webkit" % liftVersion.value.toString % "compile" withSources(),
+    "net.liftweb" %% "lift-mapper" % liftVersion.value.toString % "compile" withSources(),
+	"net.liftweb" %% "lift-wizard" % liftVersion.value.toString % "compile" withSources(),
+	"net.liftweb" %% "lift-widgets" % liftVersion.value.toString % "compile" withSources(),
+	"org.mortbay.jetty" % "jetty" % "6.1.22" % "compile,test" withSources()
 	//"junit" % "junit" % "4.7" % "test",
     //"ch.qos.logback" % "logback-classic" % "0.9.26",
     //"org.scala-tools.testing" %% "specs" % "1.6.8" % "test",
