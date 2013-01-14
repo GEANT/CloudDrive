@@ -40,7 +40,7 @@ object PithosPlusFileSystem {
   /**
    * The default Pithos+ container used to store files if nothing else has been specifically configured.
    */
-  final val DefaultContainer = "terena"
+  final val DefaultContainer = "pithos"
 
   /**
    * Same role as `buffersize` in [[net.vrijheid.clouddrive.providers.aws.AWSFileSystem]].
@@ -51,6 +51,7 @@ object PithosPlusFileSystem {
 
   final val ReadMode = 'read
   final val WriteMode = 'write
+  final val IHaveNoIdeaMode = 'ihavenoidea
 
   object Helpers {
     def isCollectionVerb(ctx: RootContext[_]): Boolean = {
@@ -58,6 +59,10 @@ object PithosPlusFileSystem {
         case verb: MKCOL => true
         case _ => false
       }
+    }
+
+    def newTmpFile(): File = {
+      File.createTempFile(Integer.toHexString(System.identityHashCode(this)), ".pj")
     }
   }
 }
@@ -116,6 +121,8 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
    */
   private val connInfo = new ConnectionInfo(serverURL, userID, userToken)
 
+  logger.debug("server=%s, container=%s, userID=%s".format(serverURL, container, userID))
+
   // From AWSFileSystem & LocalFileSystem logic
   val user = "/" + userID
 
@@ -134,7 +141,16 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
       followLink(stripTrailingSlash(user + filepath))
   }
 
-  logger.debug("resolvedFilePath = %s".format(resolvedFilePath))
+//  val remoteFilePath = resolvedFilePath.startsWith(user) match {
+//    case true =>
+//      resolvedFilePath.substring(user.length)
+//
+//    case false =>
+//      resolvedFilePath
+//  }
+  val remoteFilePath = stripLeadingSlash(filepath)
+
+  logger.debug("resolvedFilePath = %s, remoteFilePath = %s".format(resolvedFilePath, remoteFilePath))
 
   // Apparently these are the API's way to communicate content to API's clients.
   // See for example [[net.vrijheid.clouddrive.pipes.webdavcmds.GETSink]].
@@ -142,7 +158,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   var output : OutputStream = _
 
   // This var is needed because close() has no idea of the mode of the previous open()
-  private var _prevOpenMode: Symbol = 'ihavenoidea
+  private var _prevOpenMode = IHaveNoIdeaMode
   private var _tmpReadFile: File = _
   private var _tmpWriteFile: File = _
   // I need this since I detected that close() is called multiple times (actually two)
@@ -160,16 +176,18 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   /**
    * Downloads the file from Pithos+ and sets the local input stream accordingly.
    */
-  private def doReadOpen() {
-    _tmpReadFile = File.createTempFile(Integer.toHexString(System.identityHashCode(this)), ".pj")
-    logger.debug("Created empty %s for %s".format(_tmpReadFile.getAbsolutePath, resolvedFilePath))
+  private def openForRead() {
+    _tmpReadFile = Helpers.newTmpFile()
+    logger.debug("Created empty %s for %s".format(_tmpReadFile.getAbsolutePath, remoteFilePath))
     _close_post_processor = () => {
       _tmpReadFile.delete()
-      logger.debug("Deleted %s for %s".format(_tmpReadFile.getAbsolutePath, resolvedFilePath))
+      logger.debug("Deleted %s for %s".format(_tmpReadFile.getAbsolutePath, remoteFilePath))
+      _tmpReadFile = null
     }
 
+    input = null
     val tmpOutputStream = new FileOutputStream(_tmpReadFile)
-    val future = client.getObject(connInfo, container, resolvedFilePath, null, tmpOutputStream)
+    val future = client.getObject(connInfo, container, remoteFilePath, null, tmpOutputStream)
     try {
       future.get()
       input = new FileInputStream(_tmpReadFile)
@@ -179,13 +197,10 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
     }
   }
 
-  private def doWriteOpen() {
-    if(exists(resolvedFilePath)) {
-      setOriginal(resolvedFilePath, resolvedFilePath)
-      create()
-    } else {
-
-    }
+  private def openForWrite() {
+    create()
+    setOriginal(resolvedFilePath, resolvedFilePath)
+    logger.debug("setOriginal(%s, %s)".format(resolvedFilePath, resolvedFilePath))
   }
 
   def open(mode: Symbol) = {
@@ -194,11 +209,11 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
     val result = mode match {
       case ReadMode =>
-        doReadOpen()
+        openForRead()
         true
 
       case WriteMode =>
-        doWriteOpen()
+        openForWrite()
         true
 
       case _ =>
@@ -221,7 +236,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   def close() {
-    logger.debug("close() [_isClosed=%s]".format(_isClosed))
+    logger.debug("[_isClosed=%s]".format(_isClosed))
     if(_isClosed) {
       return
     }
@@ -234,11 +249,13 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
         case WriteMode =>
           doWriteClose()
 
-        case _ =>
+        case mode =>
+          logger.info("[Unknown mode = %s]".format(mode))
       }
     }
     finally {
       _isClosed = true
+      _prevOpenMode = IHaveNoIdeaMode
     }
   }
 
@@ -282,8 +299,25 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
     result
   }
 
+  // NOTE: This is called on PUT
   def transfer() {
     logger.debug("transfer()")
+    if(output ne null) {
+      output.flush()
+      logger.debug("Transfering from %s to remote %s".format(_tmpWriteFile, remoteFilePath))
+      val future = client.putObject(connInfo, container, remoteFilePath, _tmpWriteFile, "application/binary")
+      val result = future.get()
+      logger.debug("Transferred, result = %s".format(result))
+      logger.debug("result.statusCode = %s, result.statusText = %s".format(result.statusCode, result.statusText))
+      output = null
+      if(!result.is201) {
+        throw new Exception(
+          "file = %s, result.statusCode = %s, result.statusText = %s".format(
+            remoteFilePath,
+            result.statusCode,
+            result.statusText))
+      }
+    }
   }
 
   def transferLocalFile(src: File, newuuid: String) {
@@ -304,33 +338,41 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   // This seems to be used for open('write)
   def create() = {
     if(Helpers.isCollectionVerb(ctx)) {
-      logger.debug("Create collection %s".format(resolvedFilePath))
+      logger.debug("Create collection %s (%s)".format(resolvedFilePath, remoteFilePath))
       createCollection(resolvedFilePath)
     }
     else {
-      logger.debug("Create file %s".format(resolvedFilePath))
+      logger.debug("Create file %s (%s)".format(resolvedFilePath, remoteFilePath))
       createResource(resolvedFilePath)
+      _tmpWriteFile = Helpers.newTmpFile()
+      output = new FileOutputStream(_tmpWriteFile)
+      logger.debug("Created output=_tmpWriteFile in %s".format(_tmpWriteFile))
+      _close_post_processor = () ⇒ {
+        _tmpWriteFile.delete()
+        logger.debug("Deleted _tmpWriteFile %s for %s".format(_tmpWriteFile.getAbsolutePath, resolvedFilePath))
+        _tmpWriteFile = null
+      }
     }
-    false
+    true
   }
 
   def deleteDirectly(uuid: String) {
-    logger.debug("deleteDirectly(%s)".format(uuid))
+    logger.debug("uuid = %s".format(uuid))
   }
 
   def delete() {
-    logger.debug("delete()")
+    logger.debug("")
   }
 
   def exists() = {
     val result = exists(resolvedFilePath)
-    logger.debug("exists() => %s".format(result))
+    logger.debug("=> %s".format(result))
     result
   }
 
   def isCollection() = {
     val result = isCollection(resolvedFilePath)
-    logger.debug("isCollection() = %s".format(result))
+    logger.debug("=> %s".format(result))
     result
   }
 
@@ -338,7 +380,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
     // FIXME: the full path in Pithos+
     // FIXME: What is the relation of this full path with the resolvedFilePath?
     val original = getOriginal(resolvedFilePath)
-    logger.debug("getOriginalName() => %s".format(original))
+    logger.debug("=> %s".format(original))
     original
   }
 }
