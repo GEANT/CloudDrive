@@ -109,7 +109,7 @@ package net.vrijheid.clouddrive.providers {
 			debug("In getChildren (VoldemortMetaData), key = " + key)
 			debug ("Checking vmstorage " + (vmstorage == null))
 			val ubernode = vmstorage getValue(stripTrailingSlash(key))
-			debug("Retrieved the 'ubernode' = " + ubernode.name) 
+			debug("Retrieved the 'ubernode' = " + ubernode)
 			ubernode match {
 				
 				case node: VMCollection => {
