@@ -377,9 +377,7 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
   }
 
   def getOriginalName() = {
-    // FIXME: the full path in Pithos+
-    // FIXME: What is the relation of this full path with the resolvedFilePath?
-    val original = getOriginal(resolvedFilePath)
+    val original = remoteFilePath
     logger.debug("=> %s".format(original))
     original
   }
