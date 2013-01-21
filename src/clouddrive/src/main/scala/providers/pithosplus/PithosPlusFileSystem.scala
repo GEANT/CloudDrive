@@ -362,21 +362,16 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def delete() {
     if(exists()) {
-      if(isCollection()) {
-        // TODO: Delete the remote folder?
-      }
-      else {
-        val future = client.deleteObject(connInfo, container, remoteFilePath)
-        val result = future.get()
-        logger.debug("Transferred, result = %s".format(result))
-        logger.debug("result.statusCode = %s, result.statusText = %s".format(result.statusCode, result.statusText))
-        if(!result.is204) {
-          throw new Exception(
-            "file = %s, result.statusCode = %s, result.statusText = %s".format(
-              remoteFilePath,
-              result.statusCode,
-              result.statusText))
-        }
+      val future = client.deleteObject(connInfo, container, remoteFilePath)
+      val result = future.get()
+      logger.debug("Transferred, result = %s".format(result))
+      logger.debug("result.statusCode = %s, result.statusText = %s".format(result.statusCode, result.statusText))
+      if(!result.is204) {
+        throw new Exception(
+          "file = %s, result.statusCode = %s, result.statusText = %s".format(
+            remoteFilePath,
+            result.statusCode,
+            result.statusText))
       }
     }
   }
