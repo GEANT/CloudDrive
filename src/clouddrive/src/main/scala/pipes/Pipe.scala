@@ -41,6 +41,7 @@ import java.io.{Serializable}
 package net.vrijheid.clouddrive.pipes {
 
 import providers.pithosplus.PithosPlusFileSystem
+import providers.swift.SwiftFileSystem
 
 //
 	//combine PipeItems and manage execution
