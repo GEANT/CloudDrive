@@ -5,6 +5,7 @@
  * de Trabalho Computacao em Nuvem para Ciencia) of RNP (Rede Nacional de
  * Ensino e Pesquisa - www.rnp.br) Brazil. This workgroup is coordinated
  * by Roberto Araujo.
+ *
  * Developer: Guilherme Maluf Balzana (guimalufb at gmail.com)
  * Copyright (c) 2013
  * All rights reserved.
@@ -109,7 +110,10 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
   private val os_password = Config(Keys.Password)
   private val os_tenant   = Config(Keys.TenantName)
   private val os_auth_url = Config(Keys.AuthURL)
-  private val os_container= Config(Keys.Container,DefaultContainer)
+
+  // This will get the whole container path(e.g container/dir/subdir) through out the whole file
+  //private val os_container= Config(Keys.Container,userID)
+  private val os_container= Config(Keys.Container,userID)
 
   private var keystoneClient : KeystoneClient = new KeystoneClient(os_auth_url)
 
@@ -123,8 +127,6 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
   //get swift endpoint in keystone and provide previous access Token
   private var swiftClient = new SwiftClient(KeystoneUtils.findEndpointURL(accessInfo.getServiceCatalog, "object-store", null, "public"), accessInfo.getToken.getId)
 
-  //if container does not exist will be created
-  swiftClient.execute( new CreateContainer(os_container) )
 
   debug("ConfigInfo: username=%s, password=%s, tenant=%s, auth_url=%s, container=%s".format(os_username, os_password, os_tenant, os_auth_url, os_container))
 
@@ -148,14 +150,37 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
 
   val remoteFilePath = stripLeadingSlash(filepath)
 
+
   // Set the UUID for storing object on cloud side
   private var fileUUID = (exists(resolvedFilePath)) match {
     case true => { getOriginal(resolvedFilePath) }
     case false => {UUID}
   }
 
+  // Will create container if default doesn't exist 
+  swiftClient.execute( new CreateContainer(os_container) )
+
   debug("resolvedFilePath = %s, remoteFilePath = %s, UUID = %s".format(resolvedFilePath, remoteFilePath,UUID))
-  debug("getOriginal %s == %s UUID".format(getOriginal(resolvedFilePath),fileUUID))
+
+  /** TODO something has to be done with directory structure
+  if ( remoteFilePath.endsWith("/") ){ //is a directory
+     val directory = remoteFilePath.split("/").last
+
+     // Create directory and append it to container path
+     // Directory is create in plain text cause getOriginal doesn't treat directories
+     swiftClient.execute( new CreateDirectory(os_container,directory)
+     
+     os_container += "/" + directory
+  }
+  else { //is a file
+      //grep the whole dir/subdir path that was created when the user was going inside the 
+  } 
+
+
+  
+  * swiftClient.execute( new CreateDirectory(container
+  * swft.execute( new ListObjects("clouddrive", new java.util.HashMap[String, String] ) )
+  **/
 
   // Apparently these are the API's way to communicate content to API's clients.
   // See for example [[net.vrijheid.clouddrive.pipes.webdavcmds.GETSink]].
@@ -281,7 +306,19 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
 
   def copy() = {
     debug("copy()")
-    null
+    val newUUID = UUID
+
+    // AFAIK there is no copy method in openstack-java-sdk, so this is a ugly workaround. download and upload with different UUID
+    val download = swiftClient.execute(new DownloadObject(os_container,fileUUID))
+
+    val upload = new ObjectForUpload
+    upload.setContainer(os_container)
+    upload.setName(newUUID)
+    upload.setInputStream( download.getInputStream ) 
+
+    swiftClient.execute( new UploadObject(upload) )
+
+    newUUID
   }
 
   def getMetaData() = {
