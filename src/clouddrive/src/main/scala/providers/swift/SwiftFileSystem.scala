@@ -2,9 +2,8 @@
  * Cloud backed storage
  * 
  * This code was developed as part of the activities of the GT-CNC (Grupo
- * de Trabalho Computacao em Nuvem para Ciencia) of RNP (Rede Nacional de
- * Ensino e Pesquisa - www.rnp.br) Brazil. This workgroup is coordinated
- * by Roberto Araujo.
+ * de Trabalho Computacao em Nuvem para Ciencia - http://gt-cnc.gercom.ufpa.br/) of RNP (Rede Nacional de
+ * Ensino e Pesquisa - www.rnp.br) Brazil. 
  *
  * Developer: Guilherme Maluf Balzana (guimalufb at gmail.com)
  * Copyright (c) 2013
@@ -157,30 +156,11 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
     case false => {UUID}
   }
 
+  // Each user have their own container
   // Will create container if default doesn't exist 
   swiftClient.execute( new CreateContainer(os_container) )
 
   debug("resolvedFilePath = %s, remoteFilePath = %s, UUID = %s".format(resolvedFilePath, remoteFilePath,UUID))
-
-  /** TODO something has to be done with directory structure
-  if ( remoteFilePath.endsWith("/") ){ //is a directory
-     val directory = remoteFilePath.split("/").last
-
-     // Create directory and append it to container path
-     // Directory is create in plain text cause getOriginal doesn't treat directories
-     swiftClient.execute( new CreateDirectory(os_container,directory)
-     
-     os_container += "/" + directory
-  }
-  else { //is a file
-      //grep the whole dir/subdir path that was created when the user was going inside the 
-  } 
-
-
-  
-  * swiftClient.execute( new CreateDirectory(container
-  * swft.execute( new ListObjects("clouddrive", new java.util.HashMap[String, String] ) )
-  **/
 
   // Apparently these are the API's way to communicate content to API's clients.
   // See for example [[net.vrijheid.clouddrive.pipes.webdavcmds.GETSink]].
@@ -305,8 +285,12 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
   }
 
   def copy() = {
-    debug("copy()")
+    debug("copy() method does not work")
+    null
+    
+    /**
     val newUUID = UUID
+    debug("resolvedFilePath = %s, remoteFilePath = %s, UUID = %s".format(resolvedFilePath, remoteFilePath,newUUID))
 
     // AFAIK there is no copy method in openstack-java-sdk, so this is a ugly workaround. download and upload with different UUID
     val download = swiftClient.execute(new DownloadObject(os_container,fileUUID))
@@ -318,7 +302,8 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
 
     swiftClient.execute( new UploadObject(upload) )
 
-    newUUID
+    newUUID;
+    **/
   }
 
   def getMetaData() = {
@@ -355,6 +340,18 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
 
   def transferLocalFile(src: File, newuuid: String) {
     debug("transferLocalFile(%s, %s)".format(src.getCanonicalPath, newuuid))
+    try {
+      val upload = new ObjectForUpload
+
+      upload.setContainer(os_container)
+      upload.setName(newuuid)
+      upload.setInputStream( new FileInputStream(src) )
+
+      val result = swiftClient.execute( new UploadObject(upload) )
+ // Following AWSFileSystem logic
+      src.delete
+    } catch { case e => {debug(e.toString)} }
+
   }
 
 

@@ -27,7 +27,8 @@ metering = voldemort
 zoo_hosts = localhost:2181
 zoo_session_timeout = 1000
 
-#Storage type. Currently S3 or filesystem (local, handy for development)
+#Storage type. 
+#Currently S3 or swift or filesystem (local, handy for development)
 storage = filesystem
 #Leave it be. Used for authentication
 auth_prefix = /auth
@@ -42,6 +43,13 @@ filesystem_prefix = /tmp/
 awsid = AWS_ID_KEY_HERE
 secretkey = AWS_SECRET_KEY_HERE
 bucket = AWS_BUCKET_NAME_HERE
+
+#If you use Openstack Swift, fill the details here
+# storage = swift
+swift-username = admin
+swift-password = adminpass
+swift-tenant = admin
+swift-auth-url = http://localhost:5000/v2.0
 
 #comma separated list of Voldemort servers here
 voldemort = tcp://10.0.0.5:6666
