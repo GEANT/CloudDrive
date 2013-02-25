@@ -422,8 +422,9 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
 
   def getOriginalName() = {
     // Get the UUID stored in /clouddrive under the key in Metadata store
-    debug("getOriginalName=> %s".format(fileUUID))
-    fileUUID
+    val original = remoteFilePath
+    debug("getOriginalName=> %s".format(original))
+    original
   }
 }
 
