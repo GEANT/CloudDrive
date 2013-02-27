@@ -521,12 +521,10 @@ package net.vrijheid.clouddrive.website.code {
 							//The new_guid is used for transferLocalFile
 							//This allows us to recover to oldguid if it's an overwrite
 							val new_guid = resource_overwrite match {
-								//We need to generate a new guid for the new data
-								case true => UUID
 								//We already have a new guid, so retrieve it from the store
-								case false => {
-									ctx.store getOriginalName
-								}
+								case true => { ctx.store getOriginalName }
+								//We need to generate a new guid for the new data
+								case false => UUID
 							}
 							
 							//Switch for local filesystem; if local, only extract the UUID part, e.g. the filename

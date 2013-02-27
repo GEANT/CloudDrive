@@ -110,8 +110,7 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
   private val os_tenant   = Config(Keys.TenantName)
   private val os_auth_url = Config(Keys.AuthURL)
 
-  // This will get the whole container path(e.g container/dir/subdir) through out the whole file
-  //private val os_container= Config(Keys.Container,userID)
+  //Each user has his own container. Should be encripted?
   private val os_container= Config(Keys.Container,userID)
 
   private var keystoneClient : KeystoneClient = new KeystoneClient(os_auth_url)
@@ -123,7 +122,7 @@ class SwiftFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) exten
   //access with previous token and TenantName
   accessInfo = keystoneClient.execute(Authenticate.withToken(accessInfo.getToken.getId).withTenantName(os_tenant))
 
-  //get swift endpoint in keystone and provide previous access Token
+  //get swift endpoint in keystone and provide access Token
   private var swiftClient = new SwiftClient(KeystoneUtils.findEndpointURL(accessInfo.getServiceCatalog, "object-store", null, "public"), accessInfo.getToken.getId)
 
 
