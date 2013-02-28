@@ -281,7 +281,9 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def write(data: Array[Byte]) {
     val description = if(data eq null) "<null>" else "length=%s".format(data.length.toString)
-    logger.debug("write(%s)".format(description))
+    if(description != "length=0") {
+      logger.debug("write(%s)".format(description))
+    }
 
     if((null ne output) && (null ne data)) {
       output.write(data)
@@ -290,7 +292,10 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def copy() = {
     logger.debug("copy()")
-    null
+    val copyRemotePath = remoteFilePath + ".copied." + UUID
+    val result = client.copyObject(connInfo, container, remoteFilePath, container, copyRemotePath)
+    logger.debug("copyObject(..., %s, %s, %s, %s)".format(container, remoteFilePath, container, copyRemotePath))
+    copyRemotePath
   }
 
   def getMetaData() = {
@@ -322,6 +327,8 @@ class PithosPlusFileSystem[T](filepath : String)(implicit ctx : RootContext[T]) 
 
   def transferLocalFile(src: File, newuuid: String) {
     logger.debug("transferLocalFile(%s, %s)".format(src.getCanonicalPath, newuuid))
+    client.putObject(connInfo, container, newuuid, src, "application/binary")
+    src.delete()
   }
 
   def setMetaData(metadata: Map[String, String]) {
